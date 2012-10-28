@@ -4,9 +4,11 @@ Makefile.PL
 README
 atonal-util
 lib/App/MusicTools.pm
+ly-fu
 scalemogrifier
 t/pod.t
 vov
 zsh-compdef/_atonal-util
+zsh-compdef/_ly-fu
 zsh-compdef/_scalemogrifier
 zsh-compdef/_vov
