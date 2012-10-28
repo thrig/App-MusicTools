@@ -1,0 +1,12 @@
+LICENSE
+MANIFEST
+Makefile.PL
+README
+atonal-util
+lib/App/MusicTools.pm
+scalemogrifier
+t/pod.t
+vov
+zsh-compdef/_atonal-util
+zsh-compdef/_scalemogrifier
+zsh-compdef/_vov

@@ -1,0 +1,20 @@
+Music Tools - command line utilities for music composition and analysis
+
+To install this module, use CPAN, or snag the module from:
+
+http://github.com/thrig/App-MusicTools
+
+and install it via `cpanm .`
+
+DEPENDENCIES
+
+Some knowledge of lilypond and music theory may well benefit the user.
+See the Makefile.PL for module dependencies.
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2012 Jeremy Mates
+
+This library is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself, either Perl version 5.16 or, at
+your option, any later version of Perl 5 you may have available.
