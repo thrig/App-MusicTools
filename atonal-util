@@ -753,8 +753,8 @@ Accepts two pitch sets, one per line, via standard input.
 
 =head1 FILES
 
-There is an associated C<_atonal-util> completion script for the Z-Shell
-(ZSH) that can assist with tab completion of options and modes.
+ZSH completion script available in the zsh-compdef directory of the
+L<App::MusicTools> distribution.
 
 =head1 BUGS
 
@@ -763,7 +763,7 @@ There is an associated C<_atonal-util> completion script for the Z-Shell
 If the bug is in the latest version, send a report to the author.
 Patches that fix problems or add new features are welcome.
 
-http://github.com/thrig/Music-AtonalUtil
+http://github.com/thrig/App-MusicTools
 
 =head2 Known Issues
 
@@ -772,7 +772,7 @@ associated mistakes in understanding thereof by the author.
 
 =head1 SEE ALSO
 
-perl(1), L<Music::AtonalUtil>
+L<Music::AtonalUtil>, L<Music::LilyPondUtil>, L<Music::Tension::Cope>
 
 =head1 AUTHOR
 
@@ -783,7 +783,7 @@ Jeremy Mates
 Copyright (C) 2012 by Jeremy Mates
 
 This script is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself, either Perl version 5.14.2 or, at
+under the same terms as Perl itself, either Perl version 5.16 or, at
 your option, any later version of Perl 5 you may have available.
 
 =cut

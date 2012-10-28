@@ -4,7 +4,7 @@ use 5.010000;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 1;
 __END__
@@ -19,22 +19,26 @@ App-MusicTools - command line utilities for music composition and analysis
   Ti(0)   c,e,g,a,ais
   T(4)    c,e,g,fis,a
 
+  $ export MIDI_EDITOR=timidity
+  $ ly-fu --instrument=banjo c des ees c des bes c aes
+
   $ scalemogrifier --mode=mixolydian --transpose=fis
   fis gis ais b cis dis e fis'
 
-  $ vov --natural I IV/IV V7/IV IV V7 I
-  c e g
-  b d f
-  c e g b
-  f a c
-  g b d f
-  c e g
+  % vov --outputtmpl='<%{chord}> \t% %{vov}' I IV/IV V7/IV IV V7 I
+  <c e g> 	% I
+  <b dis f> 	% IV/IV
+  <c e g b> 	% V7/IV
+  <f a c> 	% IV
+  <g b d f> 	% V7
+  <c e g> 	% I
 
 =head1 DESCRIPTION
 
 This distribution contains a number of command line utilities related to
-music composition and analysis. Run C<perldoc> on the command name for
-documentation on how to use each tool.
+music composition and analysis, examples of which are shown in the
+SYNOPSIS. Run C<perldoc> on the command name for documentation on how to
+use each tool.
 
 The C<zsh-compdef> directory of this distribution includes ZSH
 completion scripts for the command line utilities. Install these files
@@ -53,7 +57,12 @@ conventions (e.g. fis for F sharp, ees for E flat, etc.)
 
 =item *
 
-"The Structure of Atonal Music" by Allen Forte.
+C<ly-fu> expects that a MIDI player and PDF viewer are available on
+the system.
+
+=item *
+
+"The Structure of Atonal Music" by Allen Forte (ISBN 978-0-300-02120-2).
 
 =item *
 
