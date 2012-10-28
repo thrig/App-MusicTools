@@ -2,6 +2,9 @@
 #
 # Command line interface to the atonal routines in the Music::AtonalUtil
 # module. Run perldoc(1) on this script for additional documentation.
+#
+# ZSH completion script available in the zsh-compdef directory of the
+# App::MusicTools distribution.
 
 use strict;
 use warnings;

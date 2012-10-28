@@ -10,6 +10,9 @@
 # sources, with some tweaks for Unix command line input needs. Output is
 # suitable for input to Lilypond, e.g. via `vov ... | ly-fu -` though
 # can be adjusted by various options.
+#
+# ZSH completion script available in the zsh-compdef directory of the
+# App::MusicTools distribution.
 
 use strict;
 use warnings;

@@ -62,7 +62,8 @@
 #
 # http://oeis.org/search?q=2,2,1,2,2,2,1
 #
-# ZSH completion available at: https://github.com/thrig/zsh-compdef
+# ZSH completion script available in the zsh-compdef directory of the
+# App::MusicTools distribution.
 
 use strict;
 use warnings;
