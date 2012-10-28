@@ -1,15 +1,14 @@
 #!perl
 #
-# Musical V/V utility, for arbitrary "chord X relative to Y as tonic in
-# key Z" type calculations (V/V are called "applied dominants" though
-# other scale degrees can be used, e.g. the phrase with a subphrase
-# relative to IV "I IV/IV V/IV IV V I").
+# Musical V/V utility, for arbitrary "chord X relative to Y as tonic
+# in key Z" type calculations (V/V are called "applied dominants"
+# among various other names). Any scale degree can be used, e.g. the
+# phrase with a sub-phrase relative to IV "I IV/IV V/IV IV V I" says
+# tonic (C), subdominant of the subdominant (B of F), dominant of the
+# subdominant (C of F), and then subdominant (F), dominant (G) and
+# back to the tonic.
 #
-# Input format based somewhat upon
-# https://en.wikipedia.org/wiki/Roman_numeral_analysis and other musical
-# sources, with some tweaks for Unix command line input needs. Output is
-# suitable for input to Lilypond, e.g. via `vov ... | ly-fu -` though
-# can be adjusted by various options.
+# Run perldoc(1) on this script for additional documentation.
 #
 # ZSH completion script available in the zsh-compdef directory of the
 # App::MusicTools distribution.
@@ -165,7 +164,7 @@ exit 0;
 # SUBROUTINES
 
 # Given root scale degree plus a chord factor, returns an array
-# reference of scale degress of the chord elements up to the
+# reference of scale degrees of the chord elements up to the
 # chord factor.
 sub build_triad_degrees {
   my ( $root_sd, $factor ) = @_;
@@ -371,3 +370,160 @@ END {
     exit 74;
   }
 }
+
+__END__
+
+=head1 NAME
+
+vov - chord generation from roman numerals with sub-phrase support
+
+=head1 SYNOPSIS
+
+  $ vov --outputtmpl='<%{chord}> \t% %{vov}' I IV/IV V7/IV IV V7 I
+  <c e g>       % I
+  <b dis f>     % IV/IV
+  <c e g b>     % V7/IV
+  <f a c>       % IV
+  <g b d f>     % V7
+  <c e g>       % I
+
+=head1 DESCRIPTION
+
+Musical V/V utility, for arbitrary "chord X relative to Y as tonic in
+key Z" type calculations (V/V are called "applied dominants" among
+various other names). Any scale degree can be used, e.g. the phrase with
+a sub-phrase relative to IV "I IV/IV V/IV IV V I" says tonic (C),
+subdominant of the subdominant (B of F), dominant of the subdominant (C
+of F), and then subdominant (F), dominant (G) and back to the tonic.
+
+The input format is based somewhat upon "Roman Numeral Analysis" and
+other musical sources, with some tweaks for Unix command line input
+needs. The output is somewhat suitable for input to lilypond, e.g. via
+C<vov ... | ly-fu -> though can be adjusted by various options.
+
+=head1 INPUT FORMAT
+
+Supported input must be a roman numeral (I..VII and i..vii), possibly
+prefixed with C<#> or C<b> to sharpen or flatten the root pitch,
+possibly suffixed with C<+> to augment or C<*> to diminish or C<**> to
+double diminish, possibly suffixed with an integer specifying the chord
+factor or inversion:
+
+  V5 V6 V64       # Dominant fifth and inversions (or also Va, Vb, Vc)
+  V7 V65 V42 V2   # Dominant seventh and inversions (V7a, V7b, V7c, V7d)
+  bII6            # Neapolitan 6th
+
+Use C</> to delimit chord-X-of-Y, to arbitrary depth (depending on
+available memory, but going beyond 12 is silly):
+
+  $ vov V/V/V/V/V/V/V/V/V/V/V/V/V
+  g b d
+
+=head1 OPTIONS
+
+This script currently supports the following command line switches:
+
+=over 4
+
+=item B<--factor>=I<positive odd integer>
+
+Specify default chord factor (odd integer between 1 for just the
+fundamental and 13 for thirteenth chords, inclusive). Default is to
+generate 5th chords; C<7> would get seventh chords by default, etc.
+
+  $ vov --factor=7 II V I
+  d fis a c
+  g b d f
+  c e g b
+
+=item B<--flats>
+
+Use flats instead of sharps in the output note names.
+
+=item B<--help>
+
+Displays help and exits program.
+
+=item B<--listmodes>
+
+List available named scale modes and then exit. Used by ZSH
+compdef script.
+
+=item B<--minor>
+
+Use minor mode (default is major).
+
+=item B<--mode>=I<mode>
+
+Specify named scale mode instead of using B<--intervals>. Available
+modes can be listed with the B<--listmodes> option.
+
+=item B<--natural>
+
+Ignore C<VII> vs. C<vii> vs. C<vii*> distinctions in input and use
+the intervals implied by the mode. However, a C<bII> would still
+lower the root.
+
+=item B<--outputtmpl>=I<template>
+
+Specify a custom output template. Supported macros include C<chord> and
+C<vov> to specify the notes of the chord, and the chord name as
+specified on the command line. For example:
+
+  --outputtmpl='<%{chord}> \t% %{vov}'
+
+=item B<--raw>
+
+Emit raw pitch numbers instead of note names.
+
+=item B<--transpose>=I<pitch or note>
+
+Value by which to transpose the output by (integer) or to (note name).
+
+=back
+
+=head1 FILES
+
+ZSH completion script available in the zsh-compdef directory of the
+L<App::MusicTools> distribution.
+
+=head1 BUGS
+
+=head2 Reporting Bugs
+
+If the bug is in the latest version, send a report to the author.
+Patches that fix problems or add new features are welcome.
+
+http://github.com/thrig/App-MusicTools
+
+=head2 Known Issues
+
+None at this time but probably lots.
+
+=head1 SEE ALSO
+
+=over 4
+
+=item *
+
+http://www.lilypond.org/
+
+=item *
+
+https://en.wikipedia.org/wiki/Roman_numeral_analysis
+
+=back
+
+=head1 AUTHOR
+
+Jeremy Mates
+
+=head1 COPYRIGHT
+
+Copyright (C) 2012 by Jeremy Mates
+
+This script is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself, either Perl version 5.16 or, at
+your option, any later version of Perl 5 you may have available.
+
+=cut

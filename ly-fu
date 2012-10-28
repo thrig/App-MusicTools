@@ -300,7 +300,7 @@ What the tempo is (in quarter notes, e.g. C<120> or the like).
 
 =item B<--verbose>
 
-Show outpu from lilypond, the MIDI player.
+Show output from lilypond and the MIDI player.
 
 =back
 

@@ -42,7 +42,7 @@ use each tool.
 
 The C<zsh-compdef> directory of this distribution includes ZSH
 completion scripts for the command line utilities. Install these files
-to a ZSH $fpath directory, and follow the ZSH documentation on setting
+to a ZSH C<$fpath> directory, and follow the ZSH documentation on setting
 up tab completion.
 
 =head1 SEE ALSO

@@ -1,66 +1,11 @@
 #!perl
 #
-# Generate notes of arbitrary scales (subsets of the Western 12-tone
+# Generates notes of arbitrary scales (subsets of the Western 12-tone
 # chromatic system) from a specified starting note in a specified
 # direction and so forth from other options. This file uses "scale" and
 # "subset" and "interval series" and "interval vector" interchangeably.
 #
-# The output is in lilypond absolute format. The default scale is The
-# Major Scale, but that's easy to adjust to say C Minor:
-#
-#   $ scalemogrifier --minor --flats
-#
-# By default, scales loop back to the starting note. If this is not the
-# case, suffix 'nl' to a custom interval series:
-#
-#   $ scalemogrifier --intervals=c,cis,dis,e,g,nl --length=15
-#   c cis dis e g gis ais b d' dis' f' fis' a' ais' c''
-#
-# The output is based on the assumption that 'c' equals 0. The output
-# can be transposed via:
-#
-#   $ scalemogrifier --mode=mixolydian --transpose=-5
-#
-# Integer interval numbers can be used instead of note names or the
-# --mode option, for example the Major Scale:
-#
-#   $ scalemogrifier --intervals='2 2 1 2 2 2 1' --raw
-#
-# Or to form a -P4,+P5 sequence:
-#
-#   $ scalemogrifier --intervals=-5,7 --len=24
-#
-# Or just plain made up:
-#
-#   $ scalemogrifier --intervals=1,2,3,5,7 --dir=53 --relative --len=24
-#
-# Scales can also be rendered backwards:
-#
-#   $ scalemogrifier --dir=-1
-#
-# Or with the interval order reversed:
-#
-#   $ scalemogrifier --rev
-#
-# The scale generated can be fed back into a different output scale (the
-# direction and reverse options only apply to the --intervals option
-# scale, not the --ois scale):
-#
-#   $ scalemogrifier --intervals=c,cis,dis,e,g,nl --ois=aes,bes,ces,ees,fes \
-#      --len=48 --flats --rel
-#
-# Practical application of the results to music theory or composition
-# left as an exercise to the user. The output can be fed to `ly-fu` for
-# playback and display, for example:
-#
-#   $ ly-fu --abs -l --open $(scalemogrifier ...)
-#   $ ly-fu       -l --open $(scalemogrifier --relative ...)
-#
-# Consider http://oeis.org/ to lookup or find interesting interval series;
-# for example, search for the major interval sequence for numeric
-# sequences that contain it:
-#
-# http://oeis.org/search?q=2,2,1,2,2,2,1
+# Run perldoc(1) on this script for additional documentation.
 #
 # ZSH completion script available in the zsh-compdef directory of the
 # App::MusicTools distribution.
@@ -70,6 +15,7 @@ use warnings;
 
 use Getopt::Long qw/GetOptions/;
 use List::Util qw/sum/;
+use Music::LilyPondUtil ();
 use Text::Wrap qw/wrap/;
 
 # XXX but these have no concept of direction, which for some scales
@@ -80,6 +26,10 @@ use Text::Wrap qw/wrap/;
 # * amdorian - anti-melodic dorian, mixin from locrian, like melodic
 #   minor, except for downwards trending notes? Conventional voice
 #   leading tricky due to the diminished chords.
+#
+# XXX probably should standardize on Music::Scale (unmaintained?) or use
+# Masaya Yamaguchi's complete scale system, plus offer ability for user
+# to define new scales.
 my %modes = (
   ionian     => [qw(2 2 1 2 2 2 1)],
   lydian     => [qw(2 2 2 1 2 2 1)],
@@ -98,10 +48,6 @@ my %modes = (
 );
 $modes{'major'} = $modes{'ionian'};
 $modes{'minor'} = $modes{'aeolian'};
-
-# Accepted note names to pitch number for user input
-my %note2num = qw(c 0 cis 1 d 2 dis 3 e 4 f 5 fis 6 g 7 gis 8 a 9 ais 10 b 11
-  ces 11 des 1 ees 3 fes 4 ges 6 aes 8 bes 10 eis 5 bis 0);
 
 # Note names for program output
 my %num2note = (
@@ -124,6 +70,8 @@ my $transpose;
 
 my $output_delimiter = " ";
 my ( @output_intervals, $output_sum );
+
+my $lyu = Music::LilyPondUtil->new;
 
 ########################################################################
 #
@@ -159,13 +107,10 @@ $length = int($length);
 die "error: length must be at least one\n" if $length < 1;
 
 if ( defined $transpose ) {
-  if ( exists $note2num{$transpose} ) {
-    $transpose = $note2num{$transpose};
-  } elsif ( $transpose =~ m/^(-?\d+)$/ ) {
-    $transpose = $1;
-    $transpose %= $DEG_IN_SCALE;
+  if ( $transpose =~ m/^(-?\d+)$/ ) {
+    $transpose = $1 % $DEG_IN_SCALE;
   } else {
-    die "error: do not know how to transpose by $transpose\n";
+    $transpose = $lyu->notes2pitches($transpose);
   }
 } else {
   $transpose = 0;
@@ -234,7 +179,7 @@ exit 0;
 #
 # SUBROUTINES
 
-# Convert between intput of 'c cis dis e g' to an interval series, so
+# Convert between input of 'c cis dis e g' to an interval series, so
 # user can input arbitrary scales using note names. Mixing note names
 # with interval numbers is not supported in this implementation.
 sub names2intervalseries {
@@ -253,19 +198,15 @@ sub names2intervalseries {
   my $prev_pitch;
   for my $i (@indexes) {
     if ( $input[$i] !~ m/^-?\d+$/ ) {
-      if ( !exists $note2num{ $input[$i] } ) {
-        warn "error: unknown note: '$input[$i]'\n";
-        print_help();
-      }
       $is_conversion = 1;
       if ( defined $prev_pitch ) {
-        my $delta = $note2num{ $input[$i] } - $prev_pitch;
+        my $delta = $lyu->notes2pitches( $input[$i] ) - $prev_pitch;
         if ( abs($delta) > $DEG_IN_SCALE / 2 ) {
           $delta = ( $DEG_IN_SCALE - abs($delta) ) * ( $delta > 0 ? -1 : 1 );
         }
         push @iseries, $delta;
       }
-      $prev_pitch = $note2num{ $input[$i] };
+      $prev_pitch = $lyu->notes2pitches( $input[$i] );
     }
   }
 
@@ -274,9 +215,7 @@ sub names2intervalseries {
 }
 
 sub print_help {
-  my @startnotes = sort { $note2num{$a} <=> $note2num{$b} } keys %note2num;
   $Text::Wrap::columns = 78;
-  my $sc = wrap( '  ', '  ', @startnotes, '  nl' );
   my $modes = wrap( '  ', '  ', sort keys %modes );
 
   warn <<"END_HELP";
@@ -301,11 +240,6 @@ Options affecting output:
   --relative        Generate relative lilypond output (default: absolute).
   --transpose       Number to transpose the output by.
 
-Possible note names for the --intervals or --ois options (or instead
-specify just interval numbers):
-
-$sc
-
 Available modes for --modes option:
 
 $modes
@@ -320,3 +254,191 @@ END {
     exit 74;
   }
 }
+
+__END__
+
+=head1 NAME
+
+scalemogrifier - generate notes of named or arbitrary scales
+
+=head1 SYNOPSIS
+
+  $ scalemogrifier
+  c d e f g a b c'
+
+The list of accepted lilypond note names and other elements include:
+
+  c cis des d dis ees e f fis ges g gis aes a ais bes b   nl
+
+Available named modes include:
+
+  aeolian amdorian dorian hminor hunminor ionian locrian lydian
+  major minor mixolydian mminor phrygian
+
+=head1 DESCRIPTION
+
+Generates notes of arbitrary scales (subsets of the Western 12-tone
+chromatic system) from a specified starting note in a specified
+direction and so forth from other options.
+
+The output is in lilypond absolute format. The default scale is The
+Major Scale, but that's easy to adjust to say C Minor:
+
+  $ scalemogrifier --minor --flats
+
+By default, scales loop back to the starting note. If this is not the
+case, suffix C<nl> to a custom interval series:
+
+  $ scalemogrifier --intervals=c,cis,dis,e,g,nl --length=15
+  c cis dis e g gis ais b d' dis' f' fis' a' ais' c''
+
+The output is based on the assumption that C<c> equals 0. The output
+can be transposed via:
+
+  $ scalemogrifier --mode=mixolydian --transpose=-5
+
+Integer interval numbers can be used instead of note names or the
+--mode option, for example the Major Scale:
+
+  $ scalemogrifier --intervals='2 2 1 2 2 2 1' --raw
+
+Or to form a -P4,+P5 sequence:
+
+  $ scalemogrifier --intervals=-5,7 --len=24
+
+Or just plain made up:
+
+  $ scalemogrifier --intervals=1,2,3,5,7 --dir=53 --relative --len=24
+
+Scales can also be rendered backwards:
+
+  $ scalemogrifier --dir=-1
+
+Or with the interval order reversed:
+
+  $ scalemogrifier --rev
+
+The scale generated can be fed back into a different output scale (the
+direction and reverse options only apply to the --intervals option
+scale, not the --ois scale):
+
+  $ scalemogrifier --intervals=c,cis,dis,e,g,nl --ois=aes,bes,ces,ees,fes \
+     --len=48 --flats --rel
+
+Practical application of the results to music theory or composition left
+as an exercise to the user. The output can be fed to C<ly-fu> for
+playback and display, for example:
+
+  $ ly-fu --abs -l --open $(scalemogrifier ...)
+  $ ly-fu       -l --open $(scalemogrifier --relative ...)
+
+=head1 OPTIONS
+
+This script currently supports the following command line switches:
+
+=over 4
+
+=item B<--direction>=I<integer>
+
+Positive, the scale goes up, negative, down. Magnitudes greater than 1
+multiply the interval.
+
+=item B<--flats>
+
+Use flats instead of sharps in the output note names.
+
+=item B<--help>
+
+Displays help and exits program.
+
+=item B<--intervals>=I<interval list>
+
+List (comma or space delimited) of intervals (integers) or notes of
+the scale (lilypond note names) or C<nl> for non-loop-back-to-start-
+pitch scales.
+
+=item B<--length>=I<positive integer>
+
+How many notes to generate in the output.
+
+=item B<--listmodes>
+
+List available named scale modes and then exit. Used by ZSH
+compdef script.
+
+=item B<--mode>=I<mode>
+
+Specify named scale mode instead of using B<--intervals>. Available
+modes can be listed with the B<--listmodes> option.
+
+=item B<--ois>=I<interval list>
+
+"Output interval sequence" -- the custom scale or interval set that the
+output will be mapped into.
+
+=item B<--ors>=I<string>
+
+"Output record separator" -- text to print between each output element.
+Defaults to a space character.
+
+=item B<--raw>
+
+Emit raw pitch numbers instead of note names.
+
+=item B<--relative>
+
+Generate relative lilypond output (default: absolute). Good fun can be
+had by using absolute in relative mode, or otherwise letting the chance
+of the lilypond algorithm take the music in unexpected directions.
+
+=item B<--reverse>
+
+Reverses the order of the intervals.
+
+=item B<--transpose>=I<pitch or note>
+
+Value by which to transpose the output by (integer) or to (note name).
+
+=back
+
+=head1 FILES
+
+ZSH completion script available in the zsh-compdef directory of the
+L<App::MusicTools> distribution.
+
+=head1 BUGS
+
+=head2 Reporting Bugs
+
+If the bug is in the latest version, send a report to the author.
+Patches that fix problems or add new features are welcome.
+
+http://github.com/thrig/App-MusicTools
+
+=head2 Known Issues
+
+None at this time but probably lots.
+
+=head1 SEE ALSO
+
+http://www.lilypond.org/
+
+Consider http://oeis.org/ to lookup interesting interval series; for
+example, search by the major interval sequence for numeric sequences
+that contain it:
+
+http://oeis.org/search?q=2,2,1,2,2,2,1
+
+=head1 AUTHOR
+
+Jeremy Mates
+
+=head1 COPYRIGHT
+
+Copyright (C) 2012 by Jeremy Mates
+
+This script is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself, either Perl version 5.16 or, at
+your option, any later version of Perl 5 you may have available.
+
+=cut

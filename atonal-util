@@ -614,7 +614,7 @@ Most all modes accept a pitch set (list of raw pitch numbers (0..number
 of scale degrees) or lilypond note names (bis, c, des, etc.) either on
 the command line or via standard input, though there are exceptions.
 
-The gobal B<--ly> and B<--flats> can be specified as options to modes
+The global B<--ly> and B<--flats> can be specified as options to modes
 that emit pitches. See also L<Music::AtonalUtil> for more documentation.
 
 =over 4
@@ -653,7 +653,7 @@ Given a Forte Number, return the corresponding pitch set.
 =item B<forte2pcs> I<fnums>
 
 Return a list of all Forte Numbers and corresponding pitch sets (and
-their B<interval_class_content>), plus average tension, min tenion, and
+their B<interval_class_content>), plus average tension, min tension, and
 max tension via Music::Tension::Cope.
 
 =item B<interval_class_content>
