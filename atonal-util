@@ -20,6 +20,7 @@ use List::MoreUtils qw/all/;
 use Music::AtonalUtil    ();
 use Music::LilyPondUtil  ();
 use Music::Tension::Cope ();
+use Parse::Range qw/parse_range/;
 
 my %modes = (
   basic                  => \&basic,
@@ -174,14 +175,23 @@ sub equivs {
 
 sub findall {
   my (@args) = @_;
-  GetOptionsFromArray( \@args, @Std_Opts, 'root=s' => \my $root_pitch );
+  GetOptionsFromArray(
+    \@args, @Std_Opts,
+    'fn=s'   => \my $desired_forte_nums,
+    'root=s' => \my $root_pitch
+  );
   $lyu->chrome('flats') if $Flag_Flat;
 
   my $desired = args2pitchset(@args);
   $root_pitch = $lyu->notes2pitches($root_pitch) if defined $root_pitch;
+  my $fn_re = '^[' . join( '', parse_range($desired_forte_nums) ) . ']$';
 
   my $fnums = $atu->fnums;
   for my $fnum ( sort keys %$fnums ) {
+    if ( defined $desired_forte_nums ) {
+      ( my $prefix = $fnum ) =~ s/[-].+//;
+      next if $prefix !~ m/$fn_re/;
+    }
     _findps( $fnums->{$fnum}, $desired, $root_pitch, $fnum );
   }
 }
@@ -678,12 +688,17 @@ See L<Music::AtonalUtil>.
 Equivalents under transposition and inverse transposition. An optional
 axis of inversion (default: 0, though some forms use 6) can be supplied.
 
-=item B<findall> I<[--root=pitch]> I<pitches>
+=item B<findall> I<[--fn=nums]> I<[--root=pitch]> I<pitches>
 
 Find all Forte pitch sets in which the given pitches exist. Like
 B<findin>, except iterates over all Forte pitch sets instead of just
-the given one. With I<--root>, limits matches to those with the named
-root pitch.
+the given one.
+
+With I<--fn>, limits the search to the mentioned forte number prefixes
+(the number of pitches in the set). With I<--root>, limits matches to
+those with the named root pitch.
+
+  $ atonal-util findall --root=c --fn=4-5 c e g bes
 
 =item B<findin> I<[--root=pitch]> I<--pitchset=base_set> I<pitches>
 

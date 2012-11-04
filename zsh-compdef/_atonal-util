@@ -97,6 +97,7 @@ _atonalutil_fnums() { }
 _atonalutil_findall() {
   _arguments -s \
     '--flats[print notes as flats]' \
+    '--fn=[forte number prefixes]:fn:' \
     '--ly[emit notes not pitch numbers]' \
     '--root=[root pitch]:pitch:_values "pitches" $pitches'
 }
