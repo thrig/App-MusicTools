@@ -23,7 +23,8 @@ _atonalutil_mode() {
     'circular_permute:all permutations of pitch set'
     'complement:complement of set'
     'equivs:Tn and TnI equivalents' \
-    'findin:find pitch sets satisfying a base set' \
+    'findall:find pitch sets satisfying some pitches' \
+    'findin:find pitches satisfying a base set' \
     'fnums:return all Forte Numbers and pitch sets' \
     'forte2pcs:return pitch set for Forte Number' \
     'interval_class_content:ICC'
@@ -87,6 +88,11 @@ _atonalutil_equivs() {
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_fnums() { }
+_atonalutil_findall() {
+  _arguments -s \
+    '--flats[print notes as flats]' \
+    '--ly[emit notes not pitch numbers]'
+}
 _atonalutil_findin() {
   _arguments -s \
     '--flats[print notes as flats]' \
