@@ -1,10 +1,18 @@
 Music Tools - command line utilities for music composition and analysis
 
-To install this module, use CPAN, or snag the module from:
+To install this module, use CPAN, for example:
+
+  cpanm App::MusicTools
+
+For the current release, see:
 
 http://github.com/thrig/App-MusicTools
 
-and install it via `cpanm .`
+which can be installed by cloning that directory then running `cpanm .`
+therein. However, if installing from the github directory, the current
+versions of my various other music modules (Music::AtonalUtil,
+Music::Chord::Positions, Music::LilyPondUtil, and Music::Tension) should
+also be installed from github.
 
 DEPENDENCIES
 
