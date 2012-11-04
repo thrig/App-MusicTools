@@ -700,12 +700,18 @@ those with the named root pitch.
 
   $ atonal-util findall --root=c --fn=4-5 c e g bes
 
+Tensions may be lower than expected if the root pitch creates an open
+position chord versus a closed position of that set.
+
 =item B<findin> I<[--root=pitch]> I<--pitchset=base_set> I<pitches>
 
 Answers questions such as, given a base pitch set of C<[0,3,7]>, and the
 notes d and bes, what pitch sets (via any B<transpose> or
 B<transpose_invert> operation) complete the base pitch set. With I<--
 root>, limits matches to those with the named root pitch.
+
+Tensions may be lower than expected if the root pitch creates an open
+position chord versus a closed position of that set.
 
 =item B<forte2pcs> I<forte_number>
 
