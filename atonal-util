@@ -114,14 +114,20 @@ sub basic {
   GetOptionsFromArray( \@args, @Std_Opts ) || print_help();
   $lyu->chrome('flats') if $Flag_Flat;
 
-  emit_pitch_set( $atu, $atu->prime_form( args2pitchset( $atu, @args ) ) );
+  my $pset = args2pitchset( $atu, @args );
+
+  emit_pitch_set( $atu, $pset, rs => ',' );
   emit_pitch_set(
     $atu,
-    scalar $atu->interval_class_content( args2pitchset( $atu, @args ) ),
-    lyflag => 0
+    scalar $atu->interval_class_content($pset),
+    lyflag => 0,
+    rs     => '',
   );
-  my $forte = $atu->pcs2forte( args2pitchset( $atu, @args ) );
-  print $forte, "\n" if $forte;
+
+  my $forte = $atu->pcs2forte($pset) // '';
+  my $tension = Music::Tension::Cope->new();
+  my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->pcs($pset);
+  printf "%.03f  %.03f  %.03f\t%s\n", $t_avg, $t_min, $t_max, $forte;
 }
 
 sub circular_permute {
@@ -219,16 +225,20 @@ sub emit_pitch_set {
   my ( $atu, $pset, %params ) = @_;
 
   my $lyify = exists $params{lyflag} ? $params{lyflag} : $Flag_Lyout;
+  my $rs    = exists $params{rs}     ? $params{rs}     : ' ';
 
   my $has_nl = 0;
+  my $str;
   for my $i (@$pset) {
     if ( ref $i eq 'ARRAY' ) {
       $has_nl = emit_pitch_set( $atu, $i, %params );
     } else {
-      print( $lyify ? $lyu->p2ly($i) : $i, " " );
+      $str .= ( $lyify ? $lyu->p2ly($i) : $i ) . $rs;
     }
   }
-  print "\n" unless $has_nl;
+  $str =~ s/$rs\z//;
+  $str .= "\n" unless $has_nl;
+  print $str;
   return 1;
 }
 
@@ -237,7 +247,8 @@ sub interval_class_content {
   emit_pitch_set(
     $atu,
     scalar $atu->interval_class_content( args2pitchset( $atu, @args ) ),
-    lyflag => 0
+    lyflag => 0,
+    rs     => '',
   );
 }
 
