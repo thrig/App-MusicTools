@@ -231,7 +231,7 @@ sub _findps {
 
       @pitches = $lyu->p2ly(@pitches) if $Flag_Lyout;
 
-      printf "%s\tT(%d)\t%-${ps_width}s\t%.03f  %.03f  %.03f\n", $fnum, $i,
+      printf "%s\tTi(%d)\t%-${ps_width}s\t%.03f  %.03f  %.03f\n", $fnum, $i,
         join( ',', @pitches ), $t_avg, $t_min, $t_max;
     }
   }
