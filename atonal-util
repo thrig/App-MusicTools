@@ -127,7 +127,6 @@ sub basic {
 
   emit_pitch_set( $pset, rs => ',' );
   emit_pitch_set(
-    $atu,
     scalar $atu->interval_class_content($pset),
     lyflag => 0,
     rs     => '',
@@ -291,7 +290,6 @@ sub interval_class_content {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts );
   emit_pitch_set(
-    $atu,
     scalar $atu->interval_class_content( args2pitchset(@args) ),
     lyflag => 0,
     rs     => '',
@@ -301,11 +299,8 @@ sub interval_class_content {
 sub invariance_matrix {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts );
-  emit_pitch_set(
-    $atu,
-    $atu->invariance_matrix( args2pitchset(@args) ),
-    lyflag => 0
-  );
+  emit_pitch_set( $atu->invariance_matrix( args2pitchset(@args) ),
+    lyflag => 0 );
 }
 
 sub invariants {
@@ -534,12 +529,12 @@ sub stdin2pitchsets {
 
 sub tcs {
   my (@args) = @_;
-  emit_pitch_set( $atu, $atu->tcs( args2pitchset(@args) ), lyflag => 0 );
+  emit_pitch_set( $atu->tcs( args2pitchset(@args) ), lyflag => 0 );
 }
 
 sub tcis {
   my (@args) = @_;
-  emit_pitch_set( $atu, $atu->tcis( args2pitchset(@args) ), lyflag => 0 );
+  emit_pitch_set( $atu->tcis( args2pitchset(@args) ), lyflag => 0 );
 }
 
 sub tension {
@@ -582,11 +577,8 @@ sub variances {
 
 sub zrelation {
   my ($atu) = @_;
-  emit_pitch_set(
-    $atu,
-    [ $atu->zrelation( @{ stdin2pitchsets($atu) } ) ],
-    lyflag => 0
-  );
+  emit_pitch_set( [ $atu->zrelation( @{ stdin2pitchsets($atu) } ) ],
+    lyflag => 0 );
 }
 
 END {
