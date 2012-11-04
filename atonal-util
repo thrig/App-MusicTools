@@ -15,8 +15,8 @@
 use strict;
 use warnings;
 
-use Getopt::Long qw/GetOptions GetOptionsFromArray/;
-use List::MoreUtils qw/all uniq/;
+use Getopt::Long qw/GetOptionsFromArray/;
+use List::MoreUtils qw/all/;
 use Music::AtonalUtil    ();
 use Music::LilyPondUtil  ();
 use Music::Tension::Cope ();
@@ -175,36 +175,41 @@ sub equivs {
 
 sub findall {
   my (@args) = @_;
-  GetOptionsFromArray( \@args, @Std_Opts );
+  GetOptionsFromArray( \@args, @Std_Opts, 'root=s' => \my $root_pitch );
   $lyu->chrome('flats') if $Flag_Flat;
 
   my $desired = args2pitchset(@args);
-  my $fnums   = $atu->fnums;
+  $root_pitch = $lyu->notes2pitches($root_pitch) if defined $root_pitch;
 
+  my $fnums = $atu->fnums;
   for my $fnum ( sort keys %$fnums ) {
-    _findps( $fnums->{$fnum}, $desired, $fnum );
+    _findps( $fnums->{$fnum}, $desired, $root_pitch, $fnum );
   }
 }
 
 sub findin {
   my (@args) = @_;
-  GetOptionsFromArray( \@args, @Std_Opts, 'pitchset|P=s' => \my $base_input, )
-    || print_help();
+  GetOptionsFromArray(
+    \@args, @Std_Opts,
+    'pitchset|P=s' => \my $base_input,
+    'root=s'       => \my $root_pitch
+  ) || print_help();
   $lyu->chrome('flats') if $Flag_Flat;
 
   my $ps_base = args2pitchset( split /[ ,]/, $base_input );
   my $desired = args2pitchset(@args);
+  $root_pitch = $lyu->notes2pitches($root_pitch) if defined $root_pitch;
 
   if ( @$desired > @$ps_base ) {
     die "cannot desire more than is present\n";
   }
 
-  _findps( $ps_base, $desired );
+  _findps( $ps_base, $desired, $root_pitch );
 }
 
 sub _findps {
-  my ( $ps_base, $desired, $fnum ) = @_;
-  $fnum //= '';
+  my ( $ps_base, $desired, $root_pitch, $fnum ) = @_;
+  $fnum //= '-';
 
   my $ps_width = 24 - ( $Flag_Lyout ? 0 : 6 );
 
@@ -212,7 +217,8 @@ sub _findps {
     my %tps;
     @tps{ @{ $atu->transpose( $ps_base, $i ) } } = ();
     if ( all { exists $tps{$_} } @$desired ) {
-      my @pitches = uniq( @$desired, keys %tps );
+      my @pitches = @{ $atu->transpose( $ps_base, $i ) };
+      next if defined $root_pitch and $pitches[0] != $root_pitch;
 
       my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->pcs( \@pitches );
 
@@ -225,7 +231,8 @@ sub _findps {
     my %ips;
     @ips{ @{ $atu->transpose_invert( $ps_base, $i ) } } = ();
     if ( all { exists $ips{$_} } @$desired ) {
-      my @pitches = uniq( @$desired, keys %ips );
+      my @pitches = @{ $atu->transpose_invert( $ps_base, $i ) };
+      next if defined $root_pitch and $pitches[0] != $root_pitch;
 
       my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->pcs( \@pitches );
 
@@ -540,8 +547,8 @@ sub tension {
 
   my ( $t_avg, $t_min, $t_max, $t_ref ) =
     $tension->pcs( args2pitchset(@args) );
-  printf "%.03f  %.03f %.03f\t%s\n", $t_avg, $t_min, $t_max,
-    join( ', ', @$t_ref );
+  printf "%.03f  %.03f  %.03f\t%s\n", $t_avg, $t_min, $t_max,
+    join( ',', @$t_ref );
 }
 
 sub transpose {
@@ -679,21 +686,19 @@ See L<Music::AtonalUtil>.
 Equivalents under transposition and inverse transposition. An optional
 axis of inversion (default: 0, though some forms use 6) can be supplied.
 
-=item B<findall> I<pitches>
+=item B<findall> I<[--root=pitch]> I<pitches>
 
 Find all Forte pitch sets in which the given pitches exist. Like
-B<findin>, except iterates over all Forte pitch sets instead of just the
-given one.
+B<findin>, except iterates over all Forte pitch sets instead of just
+the given one. With I<--root>, limits matches to those with the named
+root pitch.
 
-=item B<findin> I<-P base_pitch_set> I<pitches>
+=item B<findin> I<[--root=pitch]> I<--pitchset=base_set> I<pitches>
 
 Answers questions such as, given a base pitch set of C<[0,3,7]>, and the
 notes d and bes, what pitch sets (via any B<transpose> or
-B<transpose_invert> operation) complete the base pitch set:
-
-  $ atonal-util findin --ly --flats -P 0,3,7 d bes
-  Ti(5) d,bes,f
-  T(7)  d,bes,g
+B<transpose_invert> operation) complete the base pitch set. With I<--
+root>, limits matches to those with the named root pitch.
 
 =item B<forte2pcs> I<forte_number>
 
