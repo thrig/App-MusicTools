@@ -96,13 +96,15 @@ _atonalutil_equivs() {
 _atonalutil_fnums() { }
 _atonalutil_findall() {
   _arguments -s \
+    '--exclude=[omit result if contains]:pitches:_values -s , "pitches" $pitches' \
     '--flats[print notes as flats]' \
     '--fn=[forte number prefixes]:fn:' \
     '--ly[emit notes not pitch numbers]' \
-    '--root=[root pitch]:pitch:_values "pitches" $pitches'
+    '--root=[root pitch]:pitch:_values "pitch" $pitches'
 }
 _atonalutil_findin() {
   _arguments -s \
+    '--exclude=[omit result if contains]:pitches:_values -s , "pitches" $pitches' \
     '--flats[print notes as flats]' \
     '--ly[emit notes not pitch numbers]' \
     '--root=[root pitch]:pitch:_values "pitches" $pitches' \

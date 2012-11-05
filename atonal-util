@@ -6,7 +6,8 @@
 # ZSH completion script available in the zsh-compdef directory of the
 # App::MusicTools distribution.
 
-# XXX add --tension to show Cope tension values (off by default)
+# XXX add --tension to show Cope tension values (off by default
+# otherwise)
 
 # XXX improve emit_pitch_set (returns a string, so caller can then do
 # what it will -- or have LilyPondUtil sub that knows how to format a
@@ -16,7 +17,7 @@ use strict;
 use warnings;
 
 use Getopt::Long qw/GetOptionsFromArray/;
-use List::MoreUtils qw/all/;
+use List::MoreUtils qw/all any/;
 use Music::AtonalUtil    ();
 use Music::LilyPondUtil  ();
 use Music::Tension::Cope ();
@@ -177,12 +178,16 @@ sub findall {
   my (@args) = @_;
   GetOptionsFromArray(
     \@args, @Std_Opts,
-    'fn=s'   => \my $desired_forte_nums,
-    'root=s' => \my $root_pitch
+    'exclude=s' => \my $excludes,
+    'fn=s'      => \my $desired_forte_nums,
+    'root=s'    => \my $root_pitch
   );
   $lyu->chrome('flats') if $Flag_Flat;
 
   my $desired = args2pitchset(@args);
+  my %excludes;
+  @excludes{ $lyu->notes2pitches( split /[, ]+/, $excludes ) } = ()
+    if defined $excludes;
   $root_pitch = $lyu->notes2pitches($root_pitch) if defined $root_pitch;
   my $fn_re = '^[' . join( '', parse_range($desired_forte_nums) ) . ']$';
 
@@ -192,7 +197,7 @@ sub findall {
       ( my $prefix = $fnum ) =~ s/[-].+//;
       next if $prefix !~ m/$fn_re/;
     }
-    _findps( $fnums->{$fnum}, $desired, $root_pitch, $fnum );
+    _findps( $fnums->{$fnum}, $desired, $root_pitch, \%excludes, $fnum );
   }
 }
 
@@ -200,6 +205,7 @@ sub findin {
   my (@args) = @_;
   GetOptionsFromArray(
     \@args, @Std_Opts,
+    'exclude=s'    => \my $excludes,
     'pitchset|P=s' => \my $base_input,
     'root=s'       => \my $root_pitch
   ) || print_help();
@@ -207,27 +213,36 @@ sub findin {
 
   my $ps_base = args2pitchset( split /[ ,]/, $base_input );
   my $desired = args2pitchset(@args);
+  my %excludes;
+  @excludes{ $lyu->notes2pitches( split /[, ]+/, $excludes ) } = ()
+    if defined $excludes;
   $root_pitch = $lyu->notes2pitches($root_pitch) if defined $root_pitch;
 
   if ( @$desired > @$ps_base ) {
     die "cannot desire more than is present\n";
   }
 
-  _findps( $ps_base, $desired, $root_pitch );
+  _findps( $ps_base, $desired, $root_pitch, \%excludes );
 }
 
 sub _findps {
-  my ( $ps_base, $desired, $root_pitch, $fnum ) = @_;
+  my ( $ps_base, $desired, $root_pitch, $excludes, $fnum ) = @_;
   $fnum //= '-';
+  $excludes //= {};
 
   my $ps_width = 24 - ( $Flag_Lyout ? 0 : 6 );
 
-  for my $i ( 0 .. $atu->scale_degrees - 1 ) {
+TRANS: for my $i ( 0 .. $atu->scale_degrees - 1 ) {
     my %tps;
     @tps{ @{ $atu->transpose( $ps_base, $i ) } } = ();
     if ( all { exists $tps{$_} } @$desired ) {
       my @pitches = @{ $atu->transpose( $ps_base, $i ) };
       next if defined $root_pitch and $pitches[0] != $root_pitch;
+      if (%$excludes) {
+        for my $p (@pitches) {
+          next TRANS if exists $excludes->{$p};
+        }
+      }
 
       my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->pcs( \@pitches );
 
@@ -236,12 +251,19 @@ sub _findps {
       printf "%s\tT(%d)\t%-${ps_width}s\t%.03f  %.03f  %.03f\n", $fnum, $i,
         join( ',', @pitches ), $t_avg, $t_min, $t_max;
     }
+  }
 
+TRANSINV: for my $i ( 0 .. $atu->scale_degrees - 1 ) {
     my %ips;
     @ips{ @{ $atu->transpose_invert( $ps_base, $i ) } } = ();
     if ( all { exists $ips{$_} } @$desired ) {
       my @pitches = @{ $atu->transpose_invert( $ps_base, $i ) };
       next if defined $root_pitch and $pitches[0] != $root_pitch;
+      if (%$excludes) {
+        for my $p (@pitches) {
+          next TRANSINV if exists $excludes->{$p};
+        }
+      }
 
       my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->pcs( \@pitches );
 
@@ -688,27 +710,31 @@ See L<Music::AtonalUtil>.
 Equivalents under transposition and inverse transposition. An optional
 axis of inversion (default: 0, though some forms use 6) can be supplied.
 
-=item B<findall> I<[--fn=nums]> I<[--root=pitch]> I<pitches>
+=item B<findall> I<[--exclude=p1[,p2]]> I<[--fn=nums]> I<[--root=pitch]> I<pitches>
 
 Find all Forte pitch sets in which the given pitches exist. Like
 B<findin>, except iterates over all Forte pitch sets instead of just
 the given one.
 
-With I<--fn>, limits the search to the mentioned forte number prefixes
-(the number of pitches in the set). With I<--root>, limits matches to
-those with the named root pitch.
+With I<--exclude>, omits results containing the listed pitches. With I<--
+fn>, limits the search to the mentioned forte number prefixes (the
+number of pitches in the set). With I<--root>, limits matches to those
+with the named root pitch.
 
   $ atonal-util findall --root=c --fn=4-5 c e g bes
 
 Tensions may be lower than expected if the root pitch creates an open
 position chord versus a closed position of that set.
 
-=item B<findin> I<[--root=pitch]> I<--pitchset=base_set> I<pitches>
+=item B<findin> I<[--exclude=p1[,p2]]> I<[--root=pitch]> I<--pitchset=base_set> I<pitches>
 
 Answers questions such as, given a base pitch set of C<[0,3,7]>, and the
 notes d and bes, what pitch sets (via any B<transpose> or
 B<transpose_invert> operation) complete the base pitch set. With I<--
-root>, limits matches to those with the named root pitch.
+exclude>, omits results containing the listed pitches. With I<--root>,
+limits matches to those with the named root pitch.
+
+  $ atonal-util findin --exclude=c,ees --pitchset=5-25 d fis a
 
 Tensions may be lower than expected if the root pitch creates an open
 position chord versus a closed position of that set.
