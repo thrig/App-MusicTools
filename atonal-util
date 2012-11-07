@@ -127,7 +127,7 @@ sub basic {
 
   my $pset = args2pitchset(@args);
 
-  emit_pitch_set( $pset, rs => ',' );
+  emit_pitch_set( $atu->prime_form($pset), rs => ',' );
   emit_pitch_set(
     scalar $atu->interval_class_content($pset),
     lyflag => 0,
