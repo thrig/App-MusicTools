@@ -19,7 +19,7 @@ EOR
 while read dir; do
   # NOTE must close stdin to cpanm as otherwise cpanm inherits and reads
   # the remaining dirs, and then while loop has nothing left to do.
-  ( cd $dir && cpanm . < /dev/null )
+  ( cd $dir && git pull && cpanm . < /dev/null )
 done <<'EOD'
 Music-Chord-Positions
 Music-LilyPondUtil
