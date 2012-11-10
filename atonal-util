@@ -22,6 +22,7 @@ use Music::AtonalUtil    ();
 use Music::LilyPondUtil  ();
 use Music::Tension::Cope ();
 use Parse::Range qw/parse_range/;
+use Scalar::Util qw/looks_like_number/;
 
 my %modes = (
   basic                  => \&basic,
@@ -589,8 +590,14 @@ sub transpose {
   GetOptionsFromArray( \@args, @Std_Opts, 'transpose|n=s' => \my $t, )
     || print_help();
   $lyu->chrome('flats') if $Flag_Flat;
+
+  my $pset = args2pitchset(@args);
+
   $t //= 0;
-  emit_pitch_set( $atu->transpose( args2pitchset(@args), $t ) );
+  if ( !looks_like_number($t) ) {
+    $t = $lyu->notes2pitches($t) - $pset->[0];
+  }
+  emit_pitch_set( $atu->transpose( $pset, $t ) );
 }
 
 sub transpose_invert {
@@ -601,9 +608,20 @@ sub transpose_invert {
     'transpose|t=s' => \my $t,
   ) || print_help();
   $lyu->chrome('flats') if $Flag_Flat;
+
+  my $pset = args2pitchset(@args);
+
   $axis //= 0;
-  $t    //= 0;
-  emit_pitch_set( $atu->transpose_invert( args2pitchset(@args), $t, $axis ) );
+  if ( !looks_like_number($axis) ) {
+    $axis = $lyu->notes2pitches($axis);
+  }
+
+  $t //= 0;
+  if ( !looks_like_number($t) ) {
+    $t = $lyu->notes2pitches($t) - $pset->[0];
+  }
+
+  emit_pitch_set( $atu->transpose_invert( $pset, $t, $axis ) );
 }
 
 sub variances {
@@ -832,13 +850,20 @@ Returns the average, min, max, and tension values for all the tensions
 in the passed pitch set, from the first notes in the set up to the last.
 (Via Music::Tension::Cope.)
 
-=item B<transpose>
+=item B<transpose> I<--transpose=integer_or_note>
 
-See L<Music::AtonalUtil>.
+See L<Music::AtonalUtil>. Transposes the supplied pitches by the
+specified integer (by default 0, or a no-op), or to the specified note.
 
-=item B<transpose_invert>
+  $ atonal-util transpose --transpose=4 --ly c e g
+  e gis b
+  $ atonal-util transpose --transpose=e --ly c e g
+  e gis b
 
-See L<Music::AtonalUtil>.
+=item B<transpose_invert> I<--transpose=integer_or_note> I<[--axis=integer_or_note]>
+
+See L<Music::AtonalUtil>. Transposes supplied pitch set by the specified
+integer, or to the specified note. Default axis for inversion is 0 (c).
 
 =item B<variances>
 
