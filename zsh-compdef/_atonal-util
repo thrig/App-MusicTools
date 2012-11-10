@@ -9,7 +9,7 @@ if [[ ${#forte_numbers} -eq 0 ]]; then
 fi
 
 if [[ ${#pitches} -eq 0 ]]; then
-  pitches=(c d e f g a b des ees ges aes bes cis dis fis gis ais)
+  pitches=(c d e f g a b des ees ges aes bes cis dis fis gis ais 0 1 2 3 4 5 6 7 8 9 10 11)
 fi
 
 # XXX --scaledegrees=anything is messing up subsequent completion
@@ -183,14 +183,14 @@ _atonalutil_tcs() { }
 _atonalutil_tension() { }
 _atonalutil_transpose() {
   _arguments -s \
-    '--transpose=[transposition value]:value:( )' \
+    '--transpose=[transposition value]:pitches:_values "pitches" $pitches' \
     '--flats[print notes as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_transpose_invert() {
   _arguments -s \
     '--axis=[inversion axis]:value:( )' \
-    '--transpose=[transposition value]:value:( )' \
+    '--transpose=[transposition value]:pitches:_values "pitches" $pitches' \
     '--flats[print notes as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
