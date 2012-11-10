@@ -125,7 +125,7 @@ _atonalutil_invariants() {
 }
 _atonalutil_invert() { 
   _arguments -s \
-    '--axis=[inversion axis]:value:( )' \
+    '--axis=[inversion axis]:pitch:_values "pitch" $pitches' \
     '--flats[print notes as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
@@ -172,7 +172,7 @@ _atonalutil_set_complex() {
     '--flats[print notes as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
-_atonalutil_set_complex() {
+_atonalutil_subsets() {
   _arguments -s \
     '--length=[length]:value:( )' \
     '--flats[print notes as flats]' \
@@ -183,14 +183,14 @@ _atonalutil_tcs() { }
 _atonalutil_tension() { }
 _atonalutil_transpose() {
   _arguments -s \
-    '--transpose=[transposition value]:pitches:_values "pitches" $pitches' \
+    '--transpose=[transposition value]:pitch:_values "pitch" $pitches' \
     '--flats[print notes as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_transpose_invert() {
   _arguments -s \
     '--axis=[inversion axis]:value:( )' \
-    '--transpose=[transposition value]:pitches:_values "pitches" $pitches' \
+    '--transpose=[transposition value]:pitch:_values "pitch" $pitches' \
     '--flats[print notes as flats]' \
     '--ly[emit notes not pitch numbers]'
 }

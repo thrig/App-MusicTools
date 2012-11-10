@@ -311,7 +311,7 @@ sub emit_pitch_set {
   my $rs    = exists $params{rs}     ? $params{rs}     : ' ';
 
   my $has_nl = 0;
-  my $str;
+  my $str    = '';
   for my $i (@$pset) {
     if ( ref $i eq 'ARRAY' ) {
       $has_nl = emit_pitch_set( $i, %params );
@@ -655,8 +655,6 @@ atonal-util - routines for atonal composition and analysis
 Prime form and APIC vector for a pitch set:
 
   $ atonal-util basic --ly f fis c
-  c cis fis
-  1 0 0 0 1 1 
 
 Apply a series of transformations to a pitch set:
 
@@ -787,9 +785,9 @@ Returns list of B<transpose> or B<transpose_invert> operations that have
 invariant pitches with the supplied pitch set, along with which pitches
 have not varied.
 
-=item B<invert> I<--axis=inversion_axis>
+=item B<invert> I<[--axis=inversion_axis]>
 
-See L<Music::AtonalUtil>.
+See L<Music::AtonalUtil>. Default axis is around 0.
 
 =item B<multiply>
 
@@ -824,7 +822,7 @@ for example:
 
 See L<Music::AtonalUtil>.
 
-=item B<rotate>
+=item B<rotate> I<[--rotate=integer]>
 
 See L<Music::AtonalUtil>.
 
@@ -832,9 +830,11 @@ See L<Music::AtonalUtil>.
 
 See L<Music::AtonalUtil>.
 
-=item B<subsets>
+=item B<subsets> I<[--length=integer]>
 
-See L<Music::AtonalUtil>.
+See L<Music::AtonalUtil>. The length, if supplied, must be a magnitude
+equal to or less than the number of pitches supplied, and probably also
+2 or higher.
 
 =item B<tcis>
 
