@@ -23,6 +23,7 @@ my %params = (
     'Music::LilyPondUtil'     => 0,
     'Music::Tension'          => 0,
     'Parse::Range'            => 0,
+    'Scalar::Util'            => 0,
     'Text::Roman'             => 0,
     'Text::Wrap'              => 0,
   },
