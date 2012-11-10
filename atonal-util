@@ -104,7 +104,7 @@ sub args2pitchset {
   my $pitch_set;
   if ( $args[0] =~ m/\d-/ ) {
     $pitch_set = $atu->forte2pcs( $args[0] );
-    die "unknown Forte Number\n" if !@$pitch_set;
+    die "unknown Forte Number '$args[0]'\n" if !defined $pitch_set;
   } else {
     for my $arg (@args) {
       for my $p ( $arg =~ /([\d\w]+)/g ) {
@@ -211,7 +211,13 @@ sub findin {
   ) || print_help();
   $lyu->chrome('flats') if $Flag_Flat;
 
-  my $ps_base = args2pitchset( split /[ ,]/, $base_input );
+  my $ps_base;
+  if ( $base_input =~ m/^\d-/ ) {
+    $ps_base = $atu->forte2pcs($base_input);
+    die "unknown Forte Number '$base_input'\n" if !defined $ps_base;
+  } else {
+    $ps_base = args2pitchset( split /[ ,]/, $base_input );
+  }
   my $desired = args2pitchset(@args);
   my %excludes;
   @excludes{ $lyu->notes2pitches( split /[, ]+/, $excludes ) } = ()
@@ -543,7 +549,7 @@ sub stdin2pitchsets {
     my @pset;
     if ( $line =~ m/(\d-[zZ\d]+)/ ) {
       @pset = @{ $atu->forte2pcs($1) };
-      die "unknown Forte Number\n" if !@pset;
+      die "unknown Forte Number '$1'\n" if !@pset;
     } else {
       for my $p ( $line =~ /([\d\w]+)/g ) {
         if ( $p =~ m/^\d+/ ) {
