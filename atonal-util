@@ -136,7 +136,7 @@ sub basic {
   );
 
   my $forte = $atu->pcs2forte($pset) // '';
-  my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->pcs($pset);
+  my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->vertical($pset);
   printf "%.03f  %.03f  %.03f\t%s\n", $t_avg, $t_min, $t_max, $forte;
 }
 
@@ -251,7 +251,7 @@ TRANS: for my $i ( 0 .. $atu->scale_degrees - 1 ) {
         }
       }
 
-      my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->pcs( \@pitches );
+      my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->vertical( \@pitches );
 
       @pitches = $lyu->p2ly(@pitches) if $Flag_Lyout;
 
@@ -272,7 +272,7 @@ TRANSINV: for my $i ( 0 .. $atu->scale_degrees - 1 ) {
         }
       }
 
-      my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->pcs( \@pitches );
+      my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->vertical( \@pitches );
 
       @pitches = $lyu->p2ly(@pitches) if $Flag_Lyout;
 
@@ -296,7 +296,7 @@ sub fnums {
   for my $fn ( sort keys %$fns ) {
     my $pset = $fns->{$fn};
     my $icc  = $atu->interval_class_content($pset);
-    my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->pcs($pset);
+    my ( $t_avg, $t_min, $t_max, $t_ref ) = $tension->vertical($pset);
     printf "%s\t%-16s\t%-8s\t%.03f  %.03f %.03f\n", $fn, join( ',', @$pset ),
       join( '', @$icc ),
       $t_avg,
@@ -580,7 +580,7 @@ sub tension {
   my (@args) = @_;
 
   my ( $t_avg, $t_min, $t_max, $t_ref ) =
-    $tension->pcs( args2pitchset(@args) );
+    $tension->vertical( args2pitchset(@args) );
   printf "%.03f  %.03f  %.03f\t%s\n", $t_avg, $t_min, $t_max,
     join( ',', @$t_ref );
 }
