@@ -58,8 +58,8 @@ my %modes = (
 
 my ( $Flag_Flat, $Flag_Lyout );
 my @Std_Opts = (
-  'flats' => \$Flag_Flat,
-  'ly'    => \$Flag_Lyout,
+  'flats!' => \$Flag_Flat,
+  'ly'     => \$Flag_Lyout,
 );
 
 my @leading_args;
@@ -682,9 +682,11 @@ This script currently supports the following global command line switches:
 
 =over 4
 
-=item B<--flats>
+=item B<--flats> | B<--noflats>
 
-Uses flats instead of sharps in output (but only with B<--ly>).
+Uses flats instead of sharps in output (but only with B<--ly>). Specify
+B<--noflats> to disable flats, in the event you have an alias that sets
+B<--flats> by default. There is currently no B<--sharps> option, sorry.
 
 =item B<--help>
 
