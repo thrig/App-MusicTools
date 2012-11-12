@@ -14,7 +14,8 @@ numerals=(I II III IV V VI VII i ii iii iv v vi vii)
 # transpose can take numbers, but simplier to just show possible notes
 _arguments \
   '--factor=[default chord factor]:factor:(1 3 5 7 9 11 13)' \
-  '--flats[output using flats]' \
+  '(--noflats)--flats[print notes as flats]' \
+  '(--flats)--noflats[print notes not as flats]' \
   '(- *)--listmodes[show available modes]' \
   '(--mode --minor)--minor[minor mode]' \
   '(--mode --minor)--mode=[musical mode]:mode:->modes' \

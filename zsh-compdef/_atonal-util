@@ -15,7 +15,8 @@ fi
 # XXX --scaledegrees=anything is messing up subsequent completion
 _atonal-util() {
   _arguments \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '(- *)--help[display help]' \
     '--ly[emit notes not pitch numbers]' \
     '(- *)--listmodes[show available modes]' \
@@ -75,29 +76,34 @@ _atonalutil_mode() {
 # XXX too much copy-n-paste hereafter
 _atonalutil_basic() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_circular_permute() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_complement() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_equivs() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_fnums() { }
 _atonalutil_findall() {
   _arguments -s \
     '--exclude=[omit result if contains]:pitches:_values -s , "pitches" $pitches' \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--fn=[forte number prefixes]:fn:' \
     '--ly[emit notes not pitch numbers]' \
     '--root=[root pitch]:pitch:_values "pitch" $pitches'
@@ -105,14 +111,16 @@ _atonalutil_findall() {
 _atonalutil_findin() {
   _arguments -s \
     '--exclude=[omit result if contains]:pitches:_values -s , "pitches" $pitches' \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]' \
     '--root=[root pitch]:pitch:_values "pitches" $pitches' \
     '--pitchset=[base pitch set]:ps:_values "forte number" $forte_numbers'
 }
 _atonalutil_forte2pcs() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]' \
     '1:fortenumber:_values "forte number" $forte_numbers'
 }
@@ -120,62 +128,73 @@ _atonalutil_interval_class_content() { }
 _atonalutil_invariance_matrix() { }
 _atonalutil_invariants() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_invert() { 
   _arguments -s \
     '--axis=[inversion axis]:pitch:_values "pitch" $pitches' \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_multiply() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_normal_form() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_pcs2forte() { }
 _atonalutil_pitch2intervalclass() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_prime_form() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_recipe() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]' \
     '--file=[recipe file]:filename:_files'
 }
 _atonalutil_retrograde() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_rotate() { 
   _arguments -s \
     '--rotate=[rotate by]:value:( )' \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_set_complex() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_subsets() {
   _arguments -s \
     '--length=[length]:value:( )' \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_tcis() { }
@@ -184,19 +203,22 @@ _atonalutil_tension() { }
 _atonalutil_transpose() {
   _arguments -s \
     '--transpose=[transposition value]:pitch:_values "pitch" $pitches' \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_transpose_invert() {
   _arguments -s \
     '--axis=[inversion axis]:value:( )' \
     '--transpose=[transposition value]:pitch:_values "pitch" $pitches' \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_variances() {
   _arguments -s \
-    '--flats[print notes as flats]' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_zrelation() { }
