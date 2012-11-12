@@ -78,7 +78,7 @@ my $output_tmpl = '%{chord}' . "\n";
 
 GetOptions(
   'factor=i'      => \my $Default_Factor,
-  'flats'         => \my $use_flats,
+  'flats!'        => \my $use_flats,
   'help'          => \&print_help,
   'listmodes'     => \my $list_modes,
   'minor'         => \my $use_minor,
@@ -436,9 +436,10 @@ generate 5th chords; C<7> would get seventh chords by default, etc.
   g b d f
   c e g b
 
-=item B<--flats>
+=item B<--flats> | B<--noflats>
 
-Use flats instead of sharps in the output note names.
+Use flats instead of sharps in the output note names. Prefix with no to
+disable flats, in the event an alias has set them on by default.
 
 =item B<--help>
 

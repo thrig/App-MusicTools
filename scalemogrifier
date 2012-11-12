@@ -79,7 +79,7 @@ my $lyu = Music::LilyPondUtil->new;
 
 GetOptions(
   'direction=i'            => \$direction,
-  'flats'                  => \my $use_flats,
+  'flats!'                 => \my $use_flats,
   'help|h|?'               => \&print_help,
   'intervals=s'            => \my $intervals,
   'listmodes'              => \my $list_modes,
@@ -343,9 +343,10 @@ This script currently supports the following command line switches:
 Positive, the scale goes up, negative, down. Magnitudes greater than 1
 multiply the interval.
 
-=item B<--flats>
+=item B<--flats> | B<--noflats>
 
-Use flats instead of sharps in the output note names.
+Use flats instead of sharps in the output note names. Prefix with no to
+disable flats, in the event an alias has set them on by default.
 
 =item B<--help>
 
