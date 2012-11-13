@@ -82,7 +82,7 @@ $save_layout = 1 if $do_open;
 push @LILYPOND, '--pdf' if $save_layout;
 
 my ( $src_fh, $src_fname ) = tempfile(
-  "$BASENAME.XXXXXXX",
+  "$BASENAME.XXXXXXXXXX",
   DIR    => File::Spec->tmpdir,
   UNLINK => 0
 );
