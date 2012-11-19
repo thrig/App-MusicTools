@@ -7,7 +7,8 @@
 # App::MusicTools distribution.
 
 # XXX add --tension to show Cope tension values (off by default
-# otherwise)
+# otherwise) (or now --tension=cope or plomplevelt or whatever for the
+# various tension modes)
 
 # XXX improve emit_pitch_set (returns a string, so caller can then do
 # what it will -- or have LilyPondUtil sub that knows how to format a
@@ -31,8 +32,9 @@ my %modes = (
   equivs                 => \&equivs,
   findall                => \&findall,
   findin                 => \&findin,
-  forte2pcs              => \&forte2pcs,
   fnums                  => \&fnums,
+  forte2pcs              => \&forte2pcs,
+  freq2pitch             => \&freq2pitch,
   interval_class_content => \&interval_class_content,
   invariance_matrix      => \&invariance_matrix,
   invariants             => \&invariants,
@@ -40,15 +42,17 @@ my %modes = (
   multiply               => \&multiply,
   normal_form            => \&normal_form,
   pcs2forte              => \&pcs2forte,
+  pitch2freq             => \&pitch2freq,
   pitch2intervalclass    => \&pitch2intervalclass,
+  pitch2ly               => \&pitch2ly,
   prime_form             => \&prime_form,
   recipe                 => \&recipe,
   retrograde             => \&retrograde,
   rotate                 => \&rotate,
   set_complex            => \&set_complex,
   subsets                => \&subsets,
-  tcs                    => \&tcs,
   tcis                   => \&tcis,
+  tcs                    => \&tcs,
   tension                => \&tension,
   transpose              => \&transpose,
   transpose_invert       => \&transpose_invert,
@@ -282,13 +286,6 @@ TRANSINV: for my $i ( 0 .. $atu->scale_degrees - 1 ) {
   }
 }
 
-sub forte2pcs {
-  my (@args) = @_;
-  GetOptionsFromArray( \@args, @Std_Opts ) || print_help();
-
-  emit_pitch_set( $atu->forte2pcs( $args[0] ) );
-}
-
 sub fnums {
   my (@args) = @_;
 
@@ -301,6 +298,35 @@ sub fnums {
       join( '', @$icc ),
       $t_avg,
       $t_min, $t_max;
+  }
+}
+
+sub forte2pcs {
+  my (@args) = @_;
+  GetOptionsFromArray( \@args, @Std_Opts ) || print_help();
+
+  emit_pitch_set( $atu->forte2pcs( $args[0] ) );
+}
+
+sub freq2pitch {
+  my (@args) = @_;
+  GetOptionsFromArray( \@args, @Std_Opts ) || print_help();
+
+  if ( @args == 1 and $args[0] eq '-' ) {
+    chomp( @args = readline STDIN );
+  }
+
+  # Not the default, so if things persist or chain due to some rewrite,
+  # would need to save the old or create a new object or whatever
+  $lyu->keep_state(1);
+  $lyu->mode('absolute');
+
+  for my $freq ( grep looks_like_number $_, @args ) {
+    die "frequency '$freq' out of range" if $freq < 8 or $freq > 4200;
+
+    my $p = $tension->freq2pitch($freq);
+    $p = $lyu->p2ly($p) if $Flag_Lyout;
+    printf "%.2f\t%s\n", $freq, $p;
   }
 }
 
@@ -419,6 +445,19 @@ sub pcs2forte {
   print $fn, "\n";
 }
 
+sub pitch2freq {
+  my (@args) = @_;
+
+  if ( @args == 1 and $args[0] eq '-' ) {
+    chomp( @args = readline STDIN );
+  }
+
+  for my $pitch ( map int, grep looks_like_number $_, @args ) {
+    die "pitch '$pitch' out of range\n" if $pitch < 0 or $pitch > 108;
+    printf "%d\t%.2f\n", $pitch, $tension->pitch2freq($pitch);
+  }
+}
+
 sub pitch2intervalclass {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts ) || print_help();
@@ -426,6 +465,24 @@ sub pitch2intervalclass {
   die "$0 pitch2intervalclass pitch\n"
     unless defined $args[0] and $args[0] =~ m/^\d+$/;
   print $atu->pitch2intervalclass( $args[0] );
+}
+
+sub pitch2ly {
+  my (@args) = @_;
+  GetOptionsFromArray( \@args, @Std_Opts, 'mode=s' => \my $mode, )
+    || print_help();
+
+  # Not the default, so if things persist or chain due to some rewrite,
+  # would need to save the old or create a new object or whatever
+  $lyu->keep_state(1);
+
+  $lyu->mode($mode) if defined $mode;
+
+  if ( @args == 1 and $args[0] eq '-' ) {
+    chomp( @args = readline STDIN );
+  }
+
+  print join( ' ', $lyu->p2ly(@args) ), "\n";
 }
 
 sub prime_form {
@@ -665,13 +722,16 @@ Apply a series of transformations to a pitch set:
   $ atonal-util recipe --file=rules --ly 0 11 3
   4 8 7
 
+Among many other options.
+
 =head1 DESCRIPTION
 
-Routines for atonal music composition and analysis. Global options and
-an operating mode should be supplied, followed by any mode specific
-arguments and a pitch set. Pitch sets can be read as arguments or from
-standard input; some modes require two pitch sets that must be supplied
-one per line on standard input.
+Routines for atonal music composition and analysis, plus other random
+music theory related tasks. Global options and an operating mode
+should be supplied, followed by any mode specific arguments and a
+pitch set. Pitch sets can be read as arguments or from standard input;
+some modes require two pitch sets that must be supplied one per line
+on standard input.
 
 The output will vary depending on the mode, and may include Cope
 tension numbers (average, min, max tension for the pitch set).
@@ -763,15 +823,22 @@ limits matches to those with the named root pitch.
 Tensions may be lower than expected if the root pitch creates an open
 position chord versus a closed position of that set.
 
-=item B<forte2pcs> I<forte_number>
-
-Given a Forte Number, return the corresponding pitch set.
-
-=item B<forte2pcs> I<fnums>
+=item B<fnums>
 
 Return a list of all Forte Numbers and corresponding pitch sets (and
 their B<interval_class_content>), plus average tension, min tension, and
 max tension via Music::Tension::Cope.
+
+=item B<forte2pcs> I<forte_number>
+
+Given a Forte Number, return the corresponding pitch set.
+
+=item B<freq2pitch> I<frequencies...|->
+
+Converts the listed frequencies (in Hz) into the closest MIDI note
+numbers. Reads frequencies line-per-line from standard input if the only
+frequency given is a C<->. With I<--ly> also converts the MIDI note
+number to a lilypond note name.
 
 =item B<interval_class_content>
 
@@ -803,9 +870,21 @@ See L<Music::AtonalUtil>.
 
 Given a pitch set, returns the corresponding Forte Number, if any.
 
+=item B<pitch2freq> I<pitches...|->
+
+Converts pitches to a frequency (in Hz) using the standard MIDI note
+number conversion equation. Reads pitches line-by-line from standard
+input if only pitch given is C<->.
+
 =item B<pitch2intervalclass> I<pitch>
 
 See L<Music::AtonalUtil>.
+
+=item B<pitch2ly> I<[--mode=relative|absolute]> I<pitches...|->
+
+Converts pitches (integers) to lilypond note names. Reads pitches line-by-
+line from standard input if only pitch given is C<->. Use the I<--mode>
+option to specify relative or absolute conversion.
 
 =item B<prime_form>
 

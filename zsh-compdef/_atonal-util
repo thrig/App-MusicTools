@@ -33,6 +33,7 @@ _atonalutil_mode() {
     'findall:find pitch sets satisfying some pitches' \
     'findin:find pitches satisfying a base set' \
     'fnums:return all Forte Numbers and pitch sets' \
+    'freq2pitch:converts frequencies to MIDI note numbers' \
     'forte2pcs:return pitch set for Forte Number' \
     'interval_class_content:ICC'
     'invariance_matrix:invarience under TnI' \
@@ -41,7 +42,9 @@ _atonalutil_mode() {
     'multiply:multiplication' \
     'normal_form:normal_form' \
     'pcs2forte:return Forte Number for a given pitch set' \
+    'pitch2freq:MIDI pitch to frequency conversion' \
     'pitch2intervalclass:pitch to interval class' \
+    'pitch2ly:pitch lilypond note name conversion' \
     'prime_form:prime_form' \
     'recipe:list of methods to operate on a set with' \
     'retrograde:reverse' \
@@ -98,7 +101,6 @@ _atonalutil_equivs() {
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
-_atonalutil_fnums() { }
 _atonalutil_findall() {
   _arguments -s \
     '--exclude=[omit result if contains]:pitches:_values -s , "pitches" $pitches' \
@@ -117,12 +119,19 @@ _atonalutil_findin() {
     '--root=[root pitch]:pitch:_values "pitches" $pitches' \
     '--pitchset=[base pitch set]:ps:_values "forte number" $forte_numbers'
 }
+_atonalutil_fnums() { }
 _atonalutil_forte2pcs() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]' \
     '1:fortenumber:_values "forte number" $forte_numbers'
+}
+_atonalutil_freq2pitch() {
+  _arguments -s \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
+    '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_interval_class_content() { }
 _atonalutil_invariance_matrix() { }
@@ -152,11 +161,19 @@ _atonalutil_normal_form() {
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_pcs2forte() { }
+_atonalutil_pitch2freq() { }
 _atonalutil_pitch2intervalclass() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
+}
+_atonalutil_pitch2ly() {
+  _arguments -s \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
+    '--ly[emit notes not pitch numbers]' \
+    '--mode=[note relativity]:mode:(absolute relative)'
 }
 _atonalutil_prime_form() {
   _arguments -s \
