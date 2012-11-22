@@ -239,6 +239,11 @@ sub parse_roman_numeral {
     }
   }
 
+  # KLUGE $alterations is something of a mess; might be better to build
+  # the chord up by 3rds--minors for diminished, majors for aug,
+  # major/minor 3rds for major, minor/major for minor. (though 7ths and
+  # up still tricky)
+
   my $scale_degree = roman2int($roman) if $roman;
   if ( !$scale_degree ) {
     croak "could not parse '$numeral'";
@@ -256,6 +261,7 @@ sub parse_roman_numeral {
   # Sharpen or flatten the root (e.g. for bII or #IV chromatic alterations).
   if ( $pre =~ m/[$FLAT_CHARS]/ ) {
     $alterations{0} = -1;
+    $alterations{2} = -1;
   } elsif ( $pre =~ m/[$SHARP_CHARS]/ ) {
     $alterations{0} = 1;
   }
