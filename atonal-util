@@ -39,6 +39,7 @@ my %modes = (
   invariance_matrix      => \&invariance_matrix,
   invariants             => \&invariants,
   invert                 => \&invert,
+  ly2pitch               => \&ly2pitch,
   multiply               => \&multiply,
   normal_form            => \&normal_form,
   pcs2forte              => \&pcs2forte,
@@ -421,6 +422,33 @@ sub invert {
   $lyu->chrome('flats') if $Flag_Flat;
   $axis //= 0;
   emit_pitch_set( $atu->invert( args2pitchset(@args), $axis ) );
+}
+
+sub ly2pitch {
+  my (@args) = @_;
+  my $mode = 'absolute';
+  GetOptionsFromArray( \@args, @Std_Opts, 'relative=s' => \my $relative, )
+    || print_help();
+  $lyu->chrome('flats') if $Flag_Flat;
+
+  # Not the default, so if things persist or chain due to some rewrite,
+  # would need to save the old or create a new object or whatever
+  $lyu->keep_state(1);
+  $lyu->sticky_state(1);
+  if ($relative) {
+    $lyu->mode('relative');
+    # TODO would have to call prev_pitch after converting input into
+    # pitch itself
+  }
+
+  if ( @args == 1 and $args[0] eq '-' ) {
+    chomp( @args = readline STDIN );
+  }
+
+  # TODO need to update MLU to support registers, more complete parse of
+  # the lilypond note format (which means the mode/relative options
+  # above are currently noops...
+  print join(' ', $lyu->notes2pitches(@args)), "\n";
 }
 
 sub multiply {
@@ -857,6 +885,11 @@ have not varied.
 =item B<invert> I<[--axis=inversion_axis]>
 
 See L<Music::AtonalUtil>. Default axis is around 0.
+
+=item B<ly2pitch> I<[--relative=noop]>
+
+Converts lilypond note name to pitch number, but only to the lowest
+register of pitches.
 
 =item B<multiply>
 

@@ -39,6 +39,7 @@ _atonalutil_mode() {
     'invariance_matrix:invarience under TnI' \
     'invariants:list of invariants of a given pitch set' \
     'invert:inversion' \
+    'ly2pitch:lilypond note name to pitch number' \
     'multiply:multiplication' \
     'normal_form:normal_form' \
     'pcs2forte:return Forte Number for a given pitch set' \
@@ -147,6 +148,12 @@ _atonalutil_invert() {
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
+}
+_atonalutil_ly2pitch() { 
+  _arguments -s \
+    '--relative=[noop]:note:' \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]'
 }
 _atonalutil_multiply() {
   _arguments -s \
