@@ -28,6 +28,7 @@ _atonalutil_mode() {
   _atonalutil_modes=(
     'basic:prime_form and interval_class_content info' \
     'circular_permute:all permutations of pitch set'
+    'combos:combination tones'
     'complement:complement of set'
     'equivs:Tn and TnI equivalents' \
     'findall:find pitch sets satisfying some pitches' \
@@ -96,6 +97,14 @@ _atonalutil_complement() {
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
 }
+_atonalutil_combos() {
+  _arguments -s \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
+    '--ly[emit notes not pitch numbers]' \
+    '--pitches[input pitches instead of frequencies]' \
+    '--relative=[relative starting pitch]:pitch:_values "pitches" $pitches'
+}
 _atonalutil_equivs() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
@@ -151,9 +160,7 @@ _atonalutil_invert() {
 }
 _atonalutil_ly2pitch() { 
   _arguments -s \
-    '--relative=[noop]:note:' \
-    '(--noflats)--flats[print notes as flats]' \
-    '(--flats)--noflats[print notes not as flats]'
+    '--relative=[pitch]:pitch:_values "pitches" $pitches'
 }
 _atonalutil_multiply() {
   _arguments -s \
