@@ -70,9 +70,8 @@ $Modes{'major'} = $Modes{'ionian'};
 $Modes{'minor'} = $Modes{'aeolian'};
 
 my $atu = Music::AtonalUtil->new;
-# Chords generated from the root up, with no notion of register, so omit
-# any register info by disabling state.
-my $lyu = Music::LilyPondUtil->new( keep_state => 0 );
+# Chords generated from the root up, with no notion of register
+my $lyu = Music::LilyPondUtil->new( ignore_register => 1, keep_state => 0 );
 
 my $output_tmpl = '%{chord}' . "\n";
 
@@ -101,14 +100,7 @@ $Mode = 'minor' if $use_minor;
 die "error: no such mode '$Mode'" unless exists $Modes{$Mode};
 
 $Default_Factor //= $DEFAULT_CHORD_FACTOR;
-
-if ($Transpose) {
-  if ( $Transpose =~ m/^(-?\d+)$/ ) {
-    $Transpose = $1 % $DEG_IN_SCALE;
-  } else {
-    $Transpose = $lyu->notes2pitches($Transpose);
-  }
-}
+$Transpose = $lyu->notes2pitches($Transpose) if $Transpose;
 
 $output_tmpl =~ s/(\\.)/qq!"$1"!/eeg;
 $output_tmpl .= "\n" unless $output_tmpl =~ m/\s$/;

@@ -71,7 +71,7 @@ my $transpose;
 my $output_delimiter = " ";
 my ( @output_intervals, $output_sum );
 
-my $lyu = Music::LilyPondUtil->new;
+my $lyu = Music::LilyPondUtil->new( ignore_register => 1 );
 
 ########################################################################
 #
@@ -92,7 +92,7 @@ GetOptions(
   'raw'                    => \my $raw_output,
   'reverse'                => \$in_reverse,
   'transpose|t=s'          => \$transpose,
-) || die "error: could not parse options\n";
+) or die "error: could not parse options\n";
 
 print_help() if @ARGV;
 
@@ -106,15 +106,7 @@ die "error: a direction of zero is a bit too aimless\n" if $direction == 0;
 $length = int($length);
 die "error: length must be at least one\n" if $length < 1;
 
-if ( defined $transpose ) {
-  if ( $transpose =~ m/^(-?\d+)$/ ) {
-    $transpose = $1 % $DEG_IN_SCALE;
-  } else {
-    $transpose = $lyu->notes2pitches($transpose);
-  }
-} else {
-  $transpose = 0;
-}
+$transpose = defined $transpose ? $lyu->notes2pitches($transpose) : 0;
 
 $mode = 'minor' if $use_minor;
 if ( defined $mode ) {
