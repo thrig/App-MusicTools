@@ -185,7 +185,8 @@ sub combos {
     die "Usage: $0 combos [--pitches [--relative=note]] f1 f2 [f3...]\n";
   }
 
-  if ($Flag_Pitches) {
+  # turn on pitch mode if first note look more a note than a number
+  if ( $Flag_Pitches or $freqs[0] =~ m/[a-g]/ ) {
     @freqs = map $tension->pitch2freq($_), $lyu->notes2pitches(@freqs);
   }
 
@@ -193,25 +194,41 @@ sub combos {
     my $plus  = $freqs[0] + $freqs[1];
     my $minus = $freqs[$i] - $freqs[0];
 
-    # Figure out MIDI pitch of combination tone, and what the error is
-    # due to presumed equal temperament tuning of said MIDI pitches.
-    my $plus_pitch  = $tension->freq2pitch($plus);
-    my $minus_pitch = $tension->freq2pitch($minus);
-    my $plus_delta  = $tension->pitch2freq($plus_pitch) - $plus;
-    my $minus_delta = $tension->pitch2freq($minus_pitch) - $minus;
-
-    # best effort to get a note name, revert to pitch numbers if out of range
-    if ($Flag_Lyout) {
-      eval {
-        $plus_pitch = $lyu->p2ly($plus_pitch);
-        $minus_pitch = $lyu->p2ly($minus_pitch);
-      };
+    # (try to) Figure out MIDI pitch of combination tone, and what the
+    # error is due to presumed equal temperament tuning of said MIDI
+    # pitches.
+    my $plus_pitch  = 0;
+    my $minus_pitch = 0;
+    my $plus_delta  = 0;
+    my $minus_delta = 0;
+    my $errstr      = '';
+    eval {
+      $plus_pitch  = $tension->freq2pitch($plus);
+      $minus_pitch = $tension->freq2pitch($minus);
+      $plus_delta  = $tension->pitch2freq($plus_pitch) - $plus;
+      $minus_delta = $tension->pitch2freq($minus_pitch) - $minus;
+    };
+    if ($@) {
+      $errstr = "\t/!\\ pitch out of bounds";
     }
 
-    printf "%.2f+%.2f = %.2f\t(%s error %.2f)\n", $freqs[0], $freqs[$i], $plus,
-      $plus_pitch, $plus_delta;
-    printf "%.2f-%.2f = %.2f\t(%s error %.2f)\n", $freqs[$i], $freqs[0], $minus,
-      $minus_pitch, $minus_delta;
+    # best effort to get a note name, revert to pitch numbers if out of range
+    if ( $Flag_Lyout and length $errstr == 0 ) {
+      eval {
+        $plus_pitch  = $lyu->p2ly($plus_pitch);
+        $minus_pitch = $lyu->p2ly($minus_pitch);
+      };
+      if ($@) {
+        $errstr = "\t/!\\ ly note out of bounds";
+      }
+    }
+
+    printf "%.2f+%.2f = %.2f\t(%s error %.2f) %s\n", $freqs[0], $freqs[$i],
+      $plus,
+      $plus_pitch, $plus_delta, $errstr;
+    printf "%.2f-%.2f = %.2f\t(%s error %.2f) %s\n", $freqs[$i], $freqs[0],
+      $minus,
+      $minus_pitch, $minus_delta, $errstr;
   }
 }
 
@@ -567,7 +584,8 @@ sub pitch2intervalclass {
 
 sub pitch2ly {
   my (@args) = @_;
-  GetOptionsFromArray( \@args, @Std_Opts, 'mode=s' => \my $mode, )
+  my $mode = 'absolute';
+  GetOptionsFromArray( \@args, @Std_Opts, 'mode=s' => \$mode, )
     || print_help();
 
   # Not the default, so if things persist or chain due to some rewrite,
