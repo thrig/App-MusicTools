@@ -110,7 +110,7 @@ sub args2pitchset {
   }
 
   my $pitch_set;
-  if ( $args[0] =~ m/\d-/ ) {
+  if ( $args[0] =~ m/^\d-/ ) {
     $pitch_set = $atu->forte2pcs( $args[0] );
     die "unknown Forte Number '$args[0]'\n" if !defined $pitch_set;
   } else {
@@ -402,7 +402,7 @@ sub freq2pitch {
   $lyu->keep_state(1);
   $lyu->mode('absolute');
 
-  for my $freq ( grep looks_like_number $_, @args ) {
+  for my $freq ( grep looks_like_number $_, map { split ' ', $_ } @args ) {
     die "frequency '$freq' out of range" if $freq < 8 or $freq > 4200;
 
     my $p = $tension->freq2pitch($freq);
@@ -567,7 +567,8 @@ sub pitch2freq {
     chomp( @args = readline STDIN );
   }
 
-  for my $pitch ( map int, grep looks_like_number $_, @args ) {
+  for my $pitch ( map int, grep looks_like_number $_,
+    map { split ' ', $_ } @args ) {
     die "pitch '$pitch' out of range\n" if $pitch < 0 or $pitch > 108;
     printf "%d\t%.2f\n", $pitch, $tension->pitch2freq($pitch);
   }
@@ -594,11 +595,17 @@ sub pitch2ly {
 
   $lyu->mode($mode) if defined $mode;
 
+  my @pitches;
   if ( @args == 1 and $args[0] eq '-' ) {
     chomp( @args = readline STDIN );
+    for my $arg (@args) {
+      push @pitches, split ' ', $arg;
+    }
+  } else {
+    @pitches = @args;
   }
 
-  print join( ' ', $lyu->p2ly(@args) ), "\n";
+  print join( ' ', $lyu->p2ly(@pitches) ), "\n";
 }
 
 sub prime_form {
