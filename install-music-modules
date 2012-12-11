@@ -5,6 +5,11 @@
 #
 # https://metacpan.org/module/cpanm
 # https://metacpan.org/module/local::lib
+#
+# Probably should be run in a parent directory of whereever this
+# repository is checked out to, for example:
+#
+#   $ sh App-MusicTools/install-music-modules
 
 while read repo; do
   git clone $repo
