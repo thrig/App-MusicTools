@@ -166,9 +166,13 @@ if ($@) {
 }
 waitpid $lypid, 0;
 
-system( @SCORE_READER, $score_fname ) if $do_open;
+if ($do_open) {
+  die "error: score not created: $score_fname\n" unless -f $score_fname;
+  system( @SCORE_READER, $score_fname );
+}
 
 if ( !$skip_midi ) {
+  die "error: MIDI not created: $midi_fname\n" unless -f $midi_fname;
   eval {
     my ( $wtr, $rdr, $err );
     my $midipid = open3( $wtr, $rdr, $err, @MIDI_PLAYER, $midi_fname );
