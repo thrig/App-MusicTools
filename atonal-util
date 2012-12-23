@@ -500,7 +500,7 @@ sub invert {
   GetOptionsFromArray( \@args, @Std_Opts, 'axis|n=s' => \my $axis, )
     || print_help();
   $lyu->chrome('flats') if $Flag_Flat;
-  $axis //= 0;
+  $axis = defined $axis ? $lyu->notes2pitches($axis) : 0;
   emit_pitch_set( $atu->invert( args2pitchset(@args), $axis ) );
 }
 
@@ -544,6 +544,7 @@ sub multiply {
     || print_help();
   $lyu->chrome('flats') if $Flag_Flat;
   $factor //= 1;
+  die "factor must be number\n" unless looks_like_number $factor;
   emit_pitch_set( $atu->multiply( args2pitchset(@args), $factor ) );
 }
 
@@ -703,6 +704,7 @@ sub rotate {
     || print_help();
   $lyu->chrome('flats') if $Flag_Flat;
   $r //= 0;
+  die "rotate must be number\n" unless looks_like_number $r;
   emit_pitch_set( $atu->rotate( args2pitchset(@args), $r ) );
 }
 
@@ -788,10 +790,7 @@ sub transpose_invert {
 
   my $pset = args2pitchset(@args);
 
-  $axis //= 0;
-  if ( !looks_like_number($axis) ) {
-    $axis = $lyu->notes2pitches($axis);
-  }
+  $axis = defined $axis ? $lyu->notes2pitches($axis) : 0;
 
   # if a number, transpose by that; if note, transpose to that note
   $t //= 0;
