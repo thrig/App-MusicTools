@@ -1,5 +1,5 @@
 #!perl
-#
+
 # Compile and run LilyPond snippets specified on command line:
 #
 # ly-fu c des ees c des bes c aes

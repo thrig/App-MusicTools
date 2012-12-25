@@ -1,5 +1,5 @@
 #!perl
-#
+
 # Command line interface to the atonal routines in the Music::AtonalUtil
 # module. Run perldoc(1) on this script for additional documentation.
 #

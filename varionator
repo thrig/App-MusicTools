@@ -1,5 +1,5 @@
-#!/usr/bin/env perl
-#
+#!perl
+
 # Generate all possible variations on input material. Use () to denote
 # material that varies in that position. Shell quoting may be necessary
 # to prevent the shell from doing things with the ().

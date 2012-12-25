@@ -1,3 +1,5 @@
+# -*- Perl -*-
+
 package App::MusicTools;
 
 use 5.010000;
@@ -25,7 +27,10 @@ App-MusicTools - command line utilities for music composition and analysis
   $ scalemogrifier --mode=mixolydian --transpose=fis
   fis gis ais b cis dis e fis'
 
-  % vov --outputtmpl='<%{chord}> \t% %{vov}' I IV/IV V7/IV IV V7 I
+  $ varionator '(I I6) (II IV II6 IV6) (V V7 III) I'
+  ...
+
+  $ vov --outputtmpl='<%{chord}> \t% %{vov}' I IV/IV V7/IV IV V7 I
   <c e g> 	% I
   <b dis f> 	% IV/IV
   <c e g b> 	% V7/IV

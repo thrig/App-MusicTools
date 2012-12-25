@@ -1,5 +1,5 @@
 #!perl
-#
+
 # Generates notes of arbitrary scales (subsets of the Western 12-tone
 # chromatic system) from a specified starting note in a specified
 # direction and so forth from other options. This file uses "scale" and
