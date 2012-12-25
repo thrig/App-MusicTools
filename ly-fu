@@ -252,7 +252,7 @@ line. The C<MIDI_EDITOR> environment variable should be set to a program
 that can play MIDI files, and the C<SCORE_VIEWER> optionally set to a
 PDF viewer. (Or edit the source code as necessary.)
 
-http://www.lilypond.org/ and in particular the Learning and Notation
+L<http://www.lilypond.org/> and in particular the Learning and Notation
 manuals should be consulted to understand the lilypond syntax.
 
 =head1 OPTIONS
@@ -320,7 +320,7 @@ L<App::MusicTools> distribution.
 If the bug is in the latest version, send a report to the author.
 Patches that fix problems or add new features are welcome.
 
-http://github.com/thrig/App-MusicTools
+L<http://github.com/thrig/App-MusicTools>
 
 =head2 Known Issues
 
@@ -329,7 +329,7 @@ not see or hear anything.
 
 =head1 SEE ALSO
 
-http://www.lilypond.org/
+L<http://www.lilypond.org/>
 
 =head1 AUTHOR
 

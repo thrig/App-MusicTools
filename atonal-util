@@ -918,7 +918,7 @@ tuning from the actual combination tone is also shown.
   $ atonal-util --ly combos 220 440
   $ atonal-util --ly combos --pitches "c' g'"
 
-https://en.wikipedia.org/wiki/Combination_tone
+L<https://en.wikipedia.org/wiki/Combination_tone>
 
 =item B<complement>
 
@@ -1113,7 +1113,7 @@ L<App::MusicTools> distribution.
 If the bug is in the latest version, send a report to the author.
 Patches that fix problems or add new features are welcome.
 
-http://github.com/thrig/App-MusicTools
+L<http://github.com/thrig/App-MusicTools>
 
 =head2 Known Issues
 

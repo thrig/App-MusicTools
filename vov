@@ -493,7 +493,7 @@ L<App::MusicTools> distribution.
 If the bug is in the latest version, send a report to the author.
 Patches that fix problems or add new features are welcome.
 
-http://github.com/thrig/App-MusicTools
+L<http://github.com/thrig/App-MusicTools>
 
 =head2 Known Issues
 
@@ -505,11 +505,11 @@ None at this time but probably lots.
 
 =item *
 
-http://www.lilypond.org/
+L<http://www.lilypond.org/>
 
 =item *
 
-https://en.wikipedia.org/wiki/Roman_numeral_analysis
+L<https://en.wikipedia.org/wiki/Roman_numeral_analysis>
 
 =back
 

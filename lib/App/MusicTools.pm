@@ -4,7 +4,7 @@ use 5.010000;
 use strict;
 use warnings;
 
-our $VERSION = '0.60';
+our $VERSION = '0.61';
 
 1;
 __END__
@@ -51,7 +51,7 @@ up tab completion.
 
 =item *
 
-http://www.lilypond.org/ and most notably the Learning and Notation
+L<http://www.lilypond.org/> and most notably the Learning and Notation
 manuals, as the tools make use of the default lilypond note letter
 conventions (e.g. fis for F sharp, ees for E flat, etc.)
 
@@ -70,7 +70,7 @@ B<Theory of Harmony> by Arnold Schoenberg (ISBN 978-0-520-26608-7).
 
 =item *
 
-http://en.wikipedia.org/wiki/Forte_number
+L<http://en.wikipedia.org/wiki/Forte_number>
 
 =item *
 

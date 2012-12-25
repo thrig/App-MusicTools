@@ -406,7 +406,7 @@ L<App::MusicTools> distribution.
 If the bug is in the latest version, send a report to the author.
 Patches that fix problems or add new features are welcome.
 
-http://github.com/thrig/App-MusicTools
+L<http://github.com/thrig/App-MusicTools>
 
 =head2 Known Issues
 
@@ -414,13 +414,11 @@ None at this time but probably lots.
 
 =head1 SEE ALSO
 
-http://www.lilypond.org/
+L<http://www.lilypond.org/>
 
-Consider http://oeis.org/ to lookup interesting interval series; for
+Consider L<http://oeis.org/> to lookup interesting interval series; for
 example, search by the major interval sequence for numeric sequences
-that contain it:
-
-http://oeis.org/search?q=2,2,1,2,2,2,1
+that contain it: L<http://oeis.org/search?q=2,2,1,2,2,2,1>
 
 =head1 AUTHOR
 
