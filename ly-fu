@@ -6,7 +6,11 @@
 #
 # NOTE this utility assumes Mac OS X and timidity by default; set the
 # MIDI_EDITOR and SCORE_VIEWER environment variables, or adjust this
-# code as necessary.
+# code as necessary. zathura is a handy PDF viewer, if available:
+#
+#   function open {
+#     zathura "$@" 2> /dev/null &|
+#   }
 #
 # Run perldoc(1) on this script for additional documentation.
 #
@@ -26,7 +30,7 @@ use IPC::Open3 qw/open3/;
 my $BASENAME = basename($0);
 
 my @LILYPOND         = qw/lilypond/;
-my $LILYPOND_VERSION = '2.16.0';
+my $LILYPOND_VERSION = '2.14.0';
 
 my @MIDI_PLAYER  = qw/timidity/;
 my $MIDI_SUFFIX  = '.midi';
@@ -122,7 +126,8 @@ themusic = {
 }
 \\score {
   \\new Staff << $prestaff {
-    \\accidentalStyle "neo-modern"
+% only in lilypond 2.16
+%   \\accidentalStyle "neo-modern"
     \\set Staff.instrumentName = #"$instrument"
     \\themusic
   } >>
