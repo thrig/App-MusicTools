@@ -12,7 +12,10 @@ which can be installed by cloning that directory then running `cpanm .`
 therein. However, if installing from the github directory, the current
 versions of my various other music modules (Music::AtonalUtil,
 Music::Chord::Positions, Music::LilyPondUtil, and Music::Tension) should
-also be installed from github.
+also be installed from github. This can be done with the script included
+in this distribution thusly:
+
+  $ sh App-MusicTools/install-music-modules
 
 DEPENDENCIES
 
@@ -21,7 +24,7 @@ See the Makefile.PL for module dependencies.
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2012 Jeremy Mates
+Copyright (C) 2012,2013 Jeremy Mates
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself, either Perl version 5.16 or, at
