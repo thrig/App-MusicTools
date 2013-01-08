@@ -3,10 +3,13 @@ MANIFEST
 Makefile.PL
 README
 atonal-util
+capture-stderr
 lib/App/MusicTools.pm
 ly-fu
 scalemogrifier
+t/Util.pm
 t/pod.t
+t/scalemogrifier.t
 vov
 zsh-compdef/_atonal-util
 zsh-compdef/_ly-fu
