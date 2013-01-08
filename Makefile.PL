@@ -24,6 +24,7 @@ my %params = (
     'Music::Tension'          => 0.60,
     'Parse::Range'            => 0,
     'Scalar::Util'            => 0,
+    'Test::More'              => 0,
     'Text::Roman'             => 0,
     'Text::Wrap'              => 0,
   },
