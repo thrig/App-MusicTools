@@ -12,6 +12,8 @@ my %params = (
   # Try to list everything due to certain vendors cocking up core Perl... :/
   PREREQ_PM => {
     Carp                      => 0,
+    'File::Slurp'             => 0,
+    'File::Spec'              => 0,
     'File::Temp'              => 0,
     'Getopt::Long'            => 0,
     'IPC::Open3'              => 0,

@@ -9,19 +9,9 @@ use lib 't';
 use Util;
 
 my @tests = (
-  { name     => 'default',
-    cmd      => [qw{./scalemogrifier}],
-    expected => q{c d e f g a b c'},
-    lines    => 1,
-  },
-  { name     => 'aeolian a',
-    cmd      => [qw{./scalemogrifier --mode=minor --transpose=a}],
-    expected => q{a b c d e f g a'},
-    lines    => 1,
-  },
-  { name     => 'raw',
-    cmd      => [qw{./scalemogrifier --raw}],
-    expected => q{0 2 4 5 7 9 11 12},
+  { name     => 'I, Roman',
+    cmd      => [qw{./vov I}],
+    expected => q{c e g},
     lines    => 1,
   },
 );
