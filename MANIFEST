@@ -10,6 +10,7 @@ scalemogrifier
 t/Util.pm
 t/pod.t
 t/scalemogrifier.t
+t/varionator.t
 vov
 zsh-compdef/_atonal-util
 zsh-compdef/_ly-fu
