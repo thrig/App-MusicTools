@@ -40,15 +40,23 @@ App-MusicTools - command line utilities for music composition and analysis
 
 =head1 DESCRIPTION
 
-This distribution contains a number of command line utilities related to
-music composition and analysis, examples of which are shown in the
-SYNOPSIS. Run C<perldoc> on the command name for documentation on how to
-use each tool.
+This distribution contains various command line utilities related to
+music composition and analysis, brief examples of which are shown in the
+L</"SYNOPSIS">, above. Run C<perldoc> on the command name for additional
+documentation on how to use each tool, as several of the programs have
+many, many more options than shown here.
 
 The C<zsh-compdef> directory of this distribution includes ZSH
 completion scripts for the command line utilities. Install these files
 to a ZSH C<$fpath> directory, and follow the ZSH documentation on setting
 up tab completion.
+
+=head1 BUGS
+
+As of Dec 2012, C<vov> is a bit buggy for some cases, such as C<bVII>,
+need to rework the triad building logic. For other bugs, send patches,
+as there are probably lots between my bad Perl and badder understanding
+of music theory.
 
 =head1 SEE ALSO
 
