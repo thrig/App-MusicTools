@@ -19,6 +19,7 @@ t/varionator.t
 t/vov.t
 t/zrelation-no
 t/zrelation-yes
+varionator
 vov
 zsh-compdef/_atonal-util
 zsh-compdef/_ly-fu
