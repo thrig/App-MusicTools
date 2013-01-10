@@ -103,7 +103,8 @@ sub pipe_into_cmd_with_stderr {
   return ( $stdout, $stderr );
 }
 
-# pipe into cmd and return STDOUT as array, for arguments see pipe_into_cmd_with_stderr
+# pipe into cmd and return STDOUT as array, for arguments see
+# pipe_into_cmd_with_stderr
 sub pipe_into_cmd {
   my ( $stdout, $stderr ) = pipe_into_cmd_with_stderr(@_);
   return @$stdout;

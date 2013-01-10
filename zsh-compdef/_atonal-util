@@ -164,6 +164,7 @@ _atonalutil_ly2pitch() {
 }
 _atonalutil_multiply() {
   _arguments -s \
+    '--factor=[multiplication factor]:number:' \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]'
