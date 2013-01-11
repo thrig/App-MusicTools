@@ -20,6 +20,7 @@ _atonal-util() {
     '(- *)--help[display help]' \
     '--ly[emit notes not pitch numbers]' \
     '(- *)--listmodes[show available modes]' \
+    '--rs=[record separator]:sep:' \
     '--scaledegrees=[degrees in the scale]:scaledegrees:' \
     '*::atonal-util command:_atonalutil_mode'
 }
@@ -83,7 +84,8 @@ _atonalutil_basic() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
-    '--ly[emit notes not pitch numbers]'
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_circular_permute() {
   _arguments -s \
@@ -135,6 +137,7 @@ _atonalutil_forte2pcs() {
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:' \
     '1:fortenumber:_values "forte number" $forte_numbers'
 }
 _atonalutil_freq2pitch() {
@@ -144,7 +147,10 @@ _atonalutil_freq2pitch() {
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_interval_class_content() { }
-_atonalutil_invariance_matrix() { }
+_atonalutil_invariance_matrix() {
+  _arguments -s \
+    '--rs=[record separator]:sep:'
+}
 _atonalutil_invariants() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
@@ -156,7 +162,8 @@ _atonalutil_invert() {
     '--axis=[inversion axis]:pitch:_values "pitch" $pitches' \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
-    '--ly[emit notes not pitch numbers]'
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_ly2pitch() { 
   _arguments -s \
@@ -173,7 +180,8 @@ _atonalutil_normal_form() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
-    '--ly[emit notes not pitch numbers]'
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_pcs2forte() { }
 _atonalutil_pitch2freq() { }
@@ -194,40 +202,46 @@ _atonalutil_prime_form() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
-    '--ly[emit notes not pitch numbers]'
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_recipe() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]' \
-    '--file=[recipe file]:filename:_files'
+    '--file=[recipe file]:filename:_files' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_retrograde() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
-    '--ly[emit notes not pitch numbers]'
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_rotate() { 
   _arguments -s \
     '--rotate=[rotate by]:value:( )' \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
-    '--ly[emit notes not pitch numbers]'
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_set_complex() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
-    '--ly[emit notes not pitch numbers]'
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_subsets() {
   _arguments -s \
     '--length=[length]:value:( )' \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
-    '--ly[emit notes not pitch numbers]'
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_tcis() { }
 _atonalutil_tcs() { }
@@ -237,7 +251,8 @@ _atonalutil_transpose() {
     '--transpose=[transposition value]:pitch:_values "pitch" $pitches' \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
-    '--ly[emit notes not pitch numbers]'
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_transpose_invert() {
   _arguments -s \
@@ -245,12 +260,14 @@ _atonalutil_transpose_invert() {
     '--transpose=[transposition value]:pitch:_values "pitch" $pitches' \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
-    '--ly[emit notes not pitch numbers]'
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_variances() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
-    '--ly[emit notes not pitch numbers]'
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_zrelation() { }

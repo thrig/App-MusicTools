@@ -65,10 +65,12 @@ my %modes = (
 );
 
 my ( $Flag_Flat, $Flag_Lyout, $Flag_Quiet, $Flag_Tension );
-my @Std_Opts = (
+my $Flag_Record_Sep = ',';    # mostly for pitch sets e.g. 0,4,7
+my @Std_Opts        = (
   'flats!'    => \$Flag_Flat,
   'ly'        => \$Flag_Lyout,
   'quiet!'    => \$Flag_Quiet,
+  'rs=s'      => \$Flag_Record_Sep,
   'tension=s' => \$Flag_Tension,
 );
 
@@ -150,7 +152,7 @@ sub basic {
 
   my $pset = args2pitchset(@args);
 
-  emit_pitch_set( $Atu->prime_form($pset), rs => ',' );
+  emit_pitch_set( $Atu->prime_form($pset), rs => $Flag_Record_Sep );
   emit_pitch_set(
     scalar $Atu->interval_class_content($pset),
     lyflag => 0,
@@ -450,7 +452,7 @@ sub forte2pcs {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
 
-  emit_pitch_set( $Atu->forte2pcs( $args[0] ), rs => ',' );
+  emit_pitch_set( $Atu->forte2pcs( $args[0] ), rs => $Flag_Record_Sep );
 }
 
 sub freq2pitch {
@@ -493,7 +495,7 @@ sub invariance_matrix {
   emit_pitch_set(
     $Atu->invariance_matrix( args2pitchset(@args) ),
     lyflag => 0,
-    rs     => ','
+    rs     => $Flag_Record_Sep
   );
 }
 
@@ -549,7 +551,8 @@ sub invert {
     or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
   $axis = defined $axis ? $Lyu->notes2pitches($axis) : 0;
-  emit_pitch_set( $Atu->invert( args2pitchset(@args), $axis ), rs => ',' );
+  emit_pitch_set( $Atu->invert( args2pitchset(@args), $axis ),
+    rs => $Flag_Record_Sep );
 }
 
 sub ly2pitch {
@@ -600,7 +603,8 @@ sub normal_form {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
-  emit_pitch_set( $Atu->normal_form( args2pitchset(@args) ), rs => ',' );
+  emit_pitch_set( $Atu->normal_form( args2pitchset(@args) ),
+    rs => $Flag_Record_Sep );
 }
 
 sub notes2dur {
@@ -695,7 +699,8 @@ sub prime_form {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
-  emit_pitch_set( $Atu->prime_form( args2pitchset(@args) ), rs => ',' );
+  emit_pitch_set( $Atu->prime_form( args2pitchset(@args) ),
+    rs => $Flag_Record_Sep );
 }
 
 sub print_help {
@@ -770,14 +775,15 @@ sub recipe {
     chomp $@;
     die "recipe error at '$rfile' line $.: $@\n";
   }
-  emit_pitch_set( $wps, rs => ',' );
+  emit_pitch_set( $wps, rs => $Flag_Record_Sep );
 }
 
 sub retrograde {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
-  emit_pitch_set( $Atu->retrograde( args2pitchset(@args) ), rs => ',' );
+  emit_pitch_set( $Atu->retrograde( args2pitchset(@args) ),
+    rs => $Flag_Record_Sep );
 }
 
 sub rotate {
@@ -787,14 +793,16 @@ sub rotate {
   $Lyu->chrome('flats') if $Flag_Flat;
   $r //= 0;
   die "rotate must be number\n" unless looks_like_number $r;
-  emit_pitch_set( $Atu->rotate( args2pitchset(@args), $r ), rs => ',' );
+  emit_pitch_set( $Atu->rotate( args2pitchset(@args), $r ),
+    rs => $Flag_Record_Sep );
 }
 
 sub set_complex {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
-  emit_pitch_set( $Atu->set_complex( args2pitchset(@args) ), rs => ',' );
+  emit_pitch_set( $Atu->set_complex( args2pitchset(@args) ),
+    rs => $Flag_Record_Sep );
 }
 
 sub subsets {
@@ -802,7 +810,8 @@ sub subsets {
   GetOptionsFromArray( \@args, @Std_Opts, 'length|len=i' => \my $l, )
     or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
-  emit_pitch_set( $Atu->subsets( args2pitchset(@args), $l ), rs => ',' );
+  emit_pitch_set( $Atu->subsets( args2pitchset(@args), $l ),
+    rs => $Flag_Record_Sep );
 }
 
 sub stdin2pitchsets {
@@ -859,7 +868,7 @@ sub transpose {
   if ( !looks_like_number($t) ) {
     $t = $Lyu->notes2pitches($t) - $pset->[0];
   }
-  emit_pitch_set( $Atu->transpose( $pset, $t ), rs => ',' );
+  emit_pitch_set( $Atu->transpose( $pset, $t ), rs => $Flag_Record_Sep );
 }
 
 sub transpose_invert {
@@ -881,14 +890,16 @@ sub transpose_invert {
     $t = $Lyu->notes2pitches($t) - $pset->[0];
   }
 
-  emit_pitch_set( $Atu->transpose_invert( $pset, $t, $axis ), rs => ',' );
+  emit_pitch_set( $Atu->transpose_invert( $pset, $t, $axis ),
+    rs => $Flag_Record_Sep );
 }
 
 sub variances {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
-  emit_pitch_set( [ $Atu->variances( @{ stdin2pitchsets() } ) ], rs => ',' );
+  emit_pitch_set( [ $Atu->variances( @{ stdin2pitchsets() } ) ],
+    rs => $Flag_Record_Sep );
 }
 
 sub zrelation {
