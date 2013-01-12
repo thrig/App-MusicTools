@@ -46,8 +46,8 @@ my $MAX_SCALE_DEGREE = 7;
 # Western system of 7 scale degrees allows for at most a 13th chord
 # before repeats; the following generalizes to arbitrary degrees.
 my $MAX_CHORD_FACTOR =
-  ( $MAX_SCALE_DEGREE % 2 == 0 ? $MAX_SCALE_DEGREE : $MAX_SCALE_DEGREE * 2 ) -
-  1;
+  ( $MAX_SCALE_DEGREE % 2 == 0 ? $MAX_SCALE_DEGREE : $MAX_SCALE_DEGREE * 2 )
+  - 1;
 my $DEFAULT_CHORD_FACTOR = 5;    # a 5th
 
 my $DEG_IN_SCALE = 12;
@@ -145,7 +145,8 @@ for my $vov_spec (@ARGV) {
     $out_attr{chord} = join " ", $lyu->p2ly(@$pset);
   }
   my $str = $output_tmpl;
-  $str =~ s/ %{ (\w+) } / defined $out_attr{$1} ? $out_attr{$1} : q{} /egx;
+  $str =~
+    s/ \Q%{\E (\w+) \Q}\E / defined $out_attr{$1} ? $out_attr{$1} : q{} /egx;
   print $str;
 }
 
@@ -347,10 +348,10 @@ sub sd2ps {
       # with major vs. minor 3rds, and stack those up?
       next
         if $alterations->{$i} == -1
-          and ( $pset[$i] - $pset[ $i - 1 ] ) % $DEG_IN_SCALE == 3;
+        and ( $pset[$i] - $pset[ $i - 1 ] ) % $DEG_IN_SCALE == 3;
       next
         if $alterations->{$i} == 1
-          and ( $pset[$i] - $pset[ $i - 1 ] ) % $DEG_IN_SCALE == 4;
+        and ( $pset[$i] - $pset[ $i - 1 ] ) % $DEG_IN_SCALE == 4;
     }
     $pset[$i] += $alterations->{$i};
   }
