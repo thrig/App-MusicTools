@@ -37,6 +37,7 @@ my %modes = (
   forte2pcs              => \&forte2pcs,
   freq2pitch             => \&freq2pitch,
   interval_class_content => \&interval_class_content,
+  intervals2pcs          => \&intervals2pcs,
   invariance_matrix      => \&invariance_matrix,
   invariants             => \&invariants,
   invert                 => \&invert,
@@ -46,6 +47,7 @@ my %modes = (
   # TODO
   #notes2dur              => \&notes2time,
   pcs2forte           => \&pcs2forte,
+  pcs2intervals       => \&pcs2intervals,
   pitch2freq          => \&pitch2freq,
   pitch2intervalclass => \&pitch2intervalclass,
   pitch2ly            => \&pitch2ly,
@@ -489,6 +491,16 @@ sub interval_class_content {
   );
 }
 
+sub intervals2pcs {
+  my (@args) = @_;
+  GetOptionsFromArray( \@args, @Std_Opts, 'pitch|n=s' => \my $start_pitch )
+    or print_help();
+  $Lyu->chrome('flats') if $Flag_Flat;
+  $start_pitch //= 0;
+  emit_pitch_set( $Atu->intervals2pcs( args2pitchset(@args), $start_pitch ),
+    rs => $Flag_Record_Sep );
+}
+
 sub invariance_matrix {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts );
@@ -643,6 +655,15 @@ sub pcs2forte {
   my (@args) = @_;
   my $fn = $Atu->pcs2forte( args2pitchset(@args) ) || "";
   print $fn, "\n";
+}
+
+sub pcs2intervals {
+  my (@args) = @_;
+  GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
+  emit_pitch_set( $Atu->pcs2intervals( args2pitchset(@args) ),
+    lyflag => 0,
+    rs => $Flag_Record_Sep,
+  );
 }
 
 sub pitch2freq {
