@@ -495,10 +495,13 @@ sub intervals2pcs {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts, 'pitch|n=s' => \my $start_pitch )
     or print_help();
-  $Lyu->chrome('flats') if $Flag_Flat;
   $start_pitch //= 0;
-  emit_pitch_set( $Atu->intervals2pcs( args2pitchset(@args), $start_pitch ),
-    rs => $Flag_Record_Sep );
+  emit_pitch_set(
+    $Atu->intervals2pcs(
+      args2pitchset(@args), $Lyu->notes2pitches($start_pitch)
+    ),
+    rs => $Flag_Record_Sep
+  );
 }
 
 sub invariance_matrix {
@@ -660,9 +663,10 @@ sub pcs2forte {
 sub pcs2intervals {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
-  emit_pitch_set( $Atu->pcs2intervals( args2pitchset(@args) ),
+  emit_pitch_set(
+    $Atu->pcs2intervals( args2pitchset(@args) ),
     lyflag => 0,
-    rs => $Flag_Record_Sep,
+    rs     => $Flag_Record_Sep,
   );
 }
 
@@ -1093,6 +1097,10 @@ number to a lilypond note name.
 
 See L<Music::AtonalUtil>.
 
+=item B<intervals2pcs>
+
+See L<Music::AtonalUtil>.
+
 =item B<invariance_matrix>
 
 See L<Music::AtonalUtil>.
@@ -1128,6 +1136,10 @@ See L<Music::AtonalUtil>.
 =item B<pcs2forte>
 
 Given a pitch set, returns the corresponding Forte Number, if any.
+
+=item B<pcs2intervals>
+
+See L<Music::AtonalUtil>.
 
 =item B<pitch2freq> I<pitches...|->
 

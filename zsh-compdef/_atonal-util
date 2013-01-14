@@ -38,6 +38,7 @@ _atonalutil_mode() {
     'freq2pitch:converts frequencies to MIDI note numbers' \
     'forte2pcs:return pitch set for Forte Number' \
     'interval_class_content:ICC'
+    'intervals2pcs:intervals to pitch set'
     'invariance_matrix:invarience under TnI' \
     'invariants:list of invariants of a given pitch set' \
     'invert:inversion' \
@@ -45,6 +46,7 @@ _atonalutil_mode() {
     'multiply:multiplication' \
     'normal_form:normal_form' \
     'pcs2forte:return Forte Number for a given pitch set' \
+    'pcs2intervals:pitch set to intervals' \
     'pitch2freq:MIDI pitch to frequency conversion' \
     'pitch2intervalclass:pitch to interval class' \
     'pitch2ly:pitch lilypond note name conversion' \
@@ -147,6 +149,14 @@ _atonalutil_freq2pitch() {
     '--ly[emit notes not pitch numbers]'
 }
 _atonalutil_interval_class_content() { }
+_atonalutil_intervals2pcs() {
+  _arguments -s \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
+    '--ly[emit notes not pitch numbers]' \
+    '--pitch=[starting pitch]:pitch:_values "pitches" $pitches' \
+    '--rs=[record separator]:sep:'
+}
 _atonalutil_invariance_matrix() {
   _arguments -s \
     '--rs=[record separator]:sep:'
@@ -184,6 +194,10 @@ _atonalutil_normal_form() {
     '--rs=[record separator]:sep:'
 }
 _atonalutil_pcs2forte() { }
+_atonalutil_pcs2intervals() {
+  _arguments -s \
+    '--rs=[record separator]:sep:'
+}
 _atonalutil_pitch2freq() { }
 _atonalutil_pitch2intervalclass() {
   _arguments -s \
