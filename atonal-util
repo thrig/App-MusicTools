@@ -133,12 +133,12 @@ sub args2pitchset {
   }
 
   my $pitch_set;
-  if ( $args[0] =~ m/^\d-/ ) {
-    $pitch_set = $Atu->forte2pcs( $args[0] );
+  if ( $args[0] =~ m/([3-9]-z?\d{1,2})/ ) {
+    $pitch_set = $Atu->forte2pcs($1);
     die "unknown Forte Number '$args[0]'\n" if !defined $pitch_set;
   } else {
     for my $arg (@args) {
-      for my $p ( $arg =~ /([\d\w]+)/g ) {
+      for my $p ( $arg =~ /([-\d\w]+)/g ) {
         push @$pitch_set, $Lyu->notes2pitches($p);
       }
     }
@@ -495,13 +495,12 @@ sub intervals2pcs {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts, 'pitch|n=s' => \my $start_pitch )
     or print_help();
-  $start_pitch //= 0;
-  emit_pitch_set(
-    $Atu->intervals2pcs(
-      args2pitchset(@args), $Lyu->notes2pitches($start_pitch)
-    ),
-    rs => $Flag_Record_Sep
-  );
+  $start_pitch = $Lyu->notes2pitches( $start_pitch // 0 );
+
+  $Lyu->ignore_register(0);
+
+  emit_pitch_set( $Atu->intervals2pcs( args2pitchset(@args), $start_pitch ),
+    rs => $Flag_Record_Sep );
 }
 
 sub invariance_matrix {
@@ -663,6 +662,9 @@ sub pcs2forte {
 sub pcs2intervals {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
+
+  $Lyu->ignore_register(0);
+
   emit_pitch_set(
     $Atu->pcs2intervals( args2pitchset(@args) ),
     lyflag => 0,
