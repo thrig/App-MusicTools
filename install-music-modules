@@ -18,6 +18,7 @@ https://github.com/thrig/Music-Chord-Positions.git
 https://github.com/thrig/Music-LilyPondUtil.git
 https://github.com/thrig/Music-Tension.git
 https://github.com/thrig/Music-AtonalUtil.git
+https://github.com/thrig/Music-Canon.git
 https://github.com/thrig/App-MusicTools.git
 EOR
 
@@ -30,5 +31,6 @@ Music-Chord-Positions
 Music-LilyPondUtil
 Music-Tension
 Music-AtonalUtil
+Music-Canon
 App-MusicTools
 EOD
