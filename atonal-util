@@ -23,6 +23,8 @@ use Music::Tension::Cope ();
 use Parse::Range qw/parse_range/;
 use Scalar::Util qw/looks_like_number/;
 
+my $FORTE_NUMBER_RE = qr/[3-9]-[zZ]?\d{1,2}/;
+
 my %modes = (
   basic            => \&basic,
   circular_permute => \&circular_permute,
@@ -133,7 +135,7 @@ sub args2pitchset {
   }
 
   my $pitch_set;
-  if ( $args[0] =~ m/([3-9]-[zZ]?\d{1,2})/ ) {
+  if ( $args[0] =~ m/($FORTE_NUMBER_RE)/ ) {
     $pitch_set = $Atu->forte2pcs($1);
     die "unknown Forte Number '$args[0]'\n" if !defined $pitch_set;
   } else {
@@ -845,7 +847,7 @@ sub stdin2pitchsets {
   my @ss;
   while ( my $line = readline STDIN ) {
     my @pset;
-    if ( $line =~ m/([3-9]-[zZ]?\d{1,2})/ ) {
+    if ( $line =~ m/($FORTE_NUMBER_RE)/ ) {
       @pset = @{ $Atu->forte2pcs($1) };
       die "unknown Forte Number '$1'\n" if !@pset;
     } else {
