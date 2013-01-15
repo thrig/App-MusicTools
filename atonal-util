@@ -1252,7 +1252,7 @@ associated mistakes in understanding thereof by the author.
 
 =head1 SEE ALSO
 
-http://en.wikipedia.org/wiki/Forte_number
+L<http://en.wikipedia.org/wiki/Forte_number>
 
 L<Music::AtonalUtil>, L<Music::LilyPondUtil>, L<Music::Tension::Cope>
 

@@ -6,7 +6,7 @@ use 5.010000;
 use strict;
 use warnings;
 
-our $VERSION = '0.80';
+our $VERSION = '0.81';
 
 1;
 __END__
