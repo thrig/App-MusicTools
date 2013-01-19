@@ -1,6 +1,9 @@
 #compdef ly-fu
 #
-# For https://github.com/thrig/sial.org-scripts/tree/master/ly-fu
+# ZSH completion for ly-fu. Install to a $fpath directory. Consult the
+# perl distribution of the App::MusicTools module for the related CLI
+# program. This completion is from the zsh-compdef/ subdirectory of that
+# perl distribution.
 
 local ret=1
 
