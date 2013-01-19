@@ -29,17 +29,17 @@ _atonal-util() {
 _atonalutil_mode() {
   _atonalutil_modes=(
     'basic:prime_form and interval_class_content info' \
-    'circular_permute:all permutations of pitch set'
-    'combos:combination tones'
-    'complement:complement of set'
+    'circular_permute:all permutations of pitch set' \
+    'combos:combination tones' \
+    'complement:complement of set' \
     'equivs:Tn and TnI equivalents' \
     'findall:find pitch sets satisfying some pitches' \
     'findin:find pitches satisfying a base set' \
     'fnums:return all Forte Numbers and pitch sets' \
     'freq2pitch:converts frequencies to MIDI note numbers' \
     'forte2pcs:return pitch set for Forte Number' \
-    'interval_class_content:ICC'
-    'intervals2pcs:intervals to pitch set'
+    'interval_class_content:ICC' \
+    'intervals2pcs:intervals to pitch set' \
     'invariance_matrix:invarience under TnI' \
     'invariants:list of invariants of a given pitch set' \
     'invert:inversion' \
