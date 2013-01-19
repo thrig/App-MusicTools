@@ -81,6 +81,7 @@ sub _init_obj {
 
 sub _parse_modal_opt {
   my ($mode_str) = @_;
+  return 'major' unless defined $mode_str;
 
   my ( $asc, $dsc ) = split ':', $mode_str, 2;
   my @asc = split ',', $asc;
@@ -90,8 +91,9 @@ sub _parse_modal_opt {
     @dsc = split ',', $dsc;
   }
 
-  # TODO might be one, two, or arrayref, depending :/
-  return @asc > 1 ? \@asc : $asc[0], @dsc > 1 ? \@dsc : $dsc[0];
+  my @ret = grep defined, @asc > 1 ? \@asc : $asc[0],
+    @dsc > 1 ? \@dsc : $dsc[0];
+  return @ret;
 }
 
 sub emit_help {
@@ -190,12 +192,12 @@ sub do_modal {
   ) or emit_help_modal();
   my ( $canon, $lyu ) = _init_obj();
 
-  $whoops_undef //= 'x';
-
   $canon->set_scale_intervals( 'input', _parse_modal_opt($input_mode) )
     if defined $input_mode;
   $canon->set_scale_intervals( 'output', _parse_modal_opt($output_mode) )
     if defined $output_mode;
+
+  $whoops_undef //= 'x';
 
   my @pitches = $lyu->notes2pitches( map split, @args );
   my @new_phrase;
@@ -212,6 +214,7 @@ sub do_modal {
     }
     push @new_phrase, $np;
   }
+  @new_phrase = reverse @new_phrase if $canon->get_retrograde;
 
   print join( ' ', $Flag_Raw ? @new_phrase : $lyu->p2ly(@new_phrase) ), "\n";
   return 0;
@@ -317,10 +320,10 @@ Like B<--input>, except for the output line.
 
 =item B<--undef>=I<string>
 
-String to use for notes or pitches that cannot be converted. For
-example, under contrary motion, using Major to Major scales, C to D via
-C sharp is impossible, as there is no space between C and B downwards in
-the output line for the chromatic C sharp:
+String to use for notes or pitches that cannot be converted. If unset,
+defaults to C<x>. For example, under contrary motion, using Major to
+Major scales, C to D via C sharp is impossible, as there is no space
+between C and B downwards in the output line for the chromatic C sharp:
 
   $ canonical --relative=c modal --contrary --undef=OOPS c cis d
   c OOPS b
