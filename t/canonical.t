@@ -45,8 +45,19 @@ my @tests = (
     expected => [q{cis gis fis' a, f' b, e dis ais d c g'}],
   },
 
-  # modal mode tests
-  # TODO
+  # modal tests - mostly just copied from Music-Canon/t/Music-
+  # Canon.t cases.
+  { cmd      => [qw{./canonical --relative=c modal --contrary  0 13}],
+    expected => [q{c x}],
+  },
+  { cmd      => [qw{./canonical --relative=c modal --contrary --undef=q 0 8}],
+    expected => [q{c q}],
+  },
+  { cmd => [
+      qw{./canonical modal --contrary --retrograde --raw 0 2 4 5 7 9 11 12 14 16 17 19}
+    ],
+    expected => [q{-19 -17 -15 -13 -12 -10 -8 -7 -5 -3 -1 0}],
+  },
 );
 
 for my $cmd (@help_commands) {

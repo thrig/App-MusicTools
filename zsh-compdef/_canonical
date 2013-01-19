@@ -1,1 +1,6 @@
-TODO
+#compdef canonical
+#
+# ZSH completion for canonical. Install to a $fpath directory. Consult
+# the perl distribution of the App::MusicTools module for the related
+# CLI program. This completion is from the zsh-compdef/ subdirectory of
+# that perl distribution.
