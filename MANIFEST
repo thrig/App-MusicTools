@@ -1,3 +1,5 @@
+canonical
+t/canonical.t
 LICENSE
 MANIFEST
 Makefile.PL
@@ -22,6 +24,7 @@ t/zrelation-yes
 varionator
 vov
 zsh-compdef/_atonal-util
+zsh-compdef/_canonical
 zsh-compdef/_ly-fu
 zsh-compdef/_scalemogrifier
 zsh-compdef/_vov

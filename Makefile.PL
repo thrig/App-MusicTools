@@ -8,7 +8,8 @@ my %params = (
   NAME         => 'App::MusicTools',
   ABSTRACT     => 'command line utilities for music composition and analysis',
   VERSION_FROM => 'lib/App/MusicTools.pm',
-  EXE_FILES    => [qw/atonal-util ly-fu scalemogrifier varionator vov/],
+  EXE_FILES =>
+    [qw/atonal-util canonical ly-fu scalemogrifier varionator vov/],
   # Try to list everything due to certain vendors cocking up core Perl... :/
   PREREQ_PM => {
     Carp                      => 0,
@@ -20,7 +21,7 @@ my %params = (
     'List::Util'              => 0,
     'List::MoreUtils'         => 0,
     'Music::AtonalUtil'       => 0.70,
-    'Music::Chord::Note'      => 0,
+    'Music::Canon'            => 0.21,
     'Music::Chord::Positions' => 0,
     'Music::LilyPondUtil'     => 0.10,
     'Music::Tension'          => 0.60,

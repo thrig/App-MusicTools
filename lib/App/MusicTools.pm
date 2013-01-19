@@ -6,7 +6,7 @@ use 5.010000;
 use strict;
 use warnings;
 
-our $VERSION = '0.81';
+our $VERSION = '0.90';
 
 1;
 __END__
@@ -20,6 +20,9 @@ App-MusicTools - command line utilities for music composition and analysis
   $ atonal-util --ly findin --pitchset=5-25 c e g
   Ti(0)   c,e,g,a,ais
   T(4)    c,e,g,fis,a
+
+  $ canonical --contrary --retrograde modal c f g e c
+  c g, f, a, c
 
   $ export MIDI_EDITOR=timidity
   $ ly-fu --instrument=banjo c des ees c des bes c aes
