@@ -41,6 +41,10 @@ GetOptionsFromArray( \@leading_args, @Std_Opts, 'help|h' => \&emit_help, )
 my $mode = shift;
 emit_help() if !defined $mode or !exists $Modes{$mode};
 
+if ( !@ARGV or @ARGV == 1 and $ARGV[0] eq '-' ) {
+  chomp( @ARGV = <STDIN> );
+}
+
 my $ret;
 eval { $ret = $Modes{$mode}->(@ARGV) };
 if ($@) {
@@ -57,28 +61,20 @@ exit $ret;
 # Create these late from each mode as options to them might arrive
 # globally or as mode options.
 sub _init_obj {
-  my ( $c, $l );
-  eval {
-    $c = Music::Canon->new(
-      contrary          => $Flag_Contrary,
-      non_octave_scales => $Flag_Non_Octave_Scale,
-      retrograde        => $Flag_Retrograde,
-      transpose         => defined $Flag_Transpose ? $Flag_Transpose : 0,
-    );
-    $l = Music::LilyPondUtil->new(
-      max_pitch  => 999,
-      min_pitch  => -999,
-      mode       => 'relative',
-      keep_state => 1,
-    );
-    $l->mode( defined $Flag_Relative ? 'relative' : 'absolute' );
-    $l->prev_note($Flag_Relative) if defined $Flag_Relative;
-  };
-  if ($@) {
-    chomp $@;
-    warn "$PROG_NAME: $@\n";
-    exit 65;    # assume input data error
-  }
+  my $c = Music::Canon->new(
+    contrary          => $Flag_Contrary,
+    non_octave_scales => $Flag_Non_Octave_Scale,
+    retrograde        => $Flag_Retrograde,
+    transpose         => defined $Flag_Transpose ? $Flag_Transpose : 0,
+  );
+  my $l = Music::LilyPondUtil->new(
+    max_pitch  => 999,
+    min_pitch  => -999,
+    mode       => 'relative',
+    keep_state => 1,
+  );
+  $l->mode( defined $Flag_Relative ? 'relative' : 'absolute' );
+  $l->prev_note($Flag_Relative) if defined $Flag_Relative;
 
   return $c, $l;
 }
@@ -94,6 +90,7 @@ sub _parse_modal_opt {
     @dsc = split ',', $dsc;
   }
 
+  # TODO might be one, two, or arrayref, depending :/
   return @asc > 1 ? \@asc : $asc[0], @dsc > 1 ? \@dsc : $dsc[0];
 }
 
@@ -104,7 +101,7 @@ Usage: $PROG_NAME [global opts] mode [mode opts] args
 Compute canon voices via the Music::Canon module. The modes are:
 
   exact - exact interval canon for given input notes
-  modal - modal interval canon for given input notes
+  modal - modal interval canon          "
 
 Raw pitch numbers or lilypond note names are accepted. Examples:
 
@@ -127,7 +124,8 @@ Usage: $PROG_NAME [opts] exact [exactopts] note1 note2 .. noteN
 Exact interval mapping. Options include:
 
   --raw           Emit raw pitch numbers in output instead of note names.
-  --relative=N    Input is relative to lilypond note N.
+  --relative=N    Input is relative to lilypond note N (absolute notation is
+                  assumed by default otherwise).
   --contrary      Compute canon in contrary motion.
   --retrograde    Reverse the output voice.
   --transpose=N   Transpose output voice by semitones or to a lilypond note.
@@ -144,18 +142,22 @@ Usage: $PROG_NAME [opts] modal --input=mode --output=mode notes...
 
 Modal interval mapping. In particular:
 
-  --input=mode    Set the input and output modes. These may be Music::Scales
-  --output=mode   names, or Forte Numbers. Major to Major used by default.
+  --input=mode   Set the input and output modes. These may be Music::Scales
+  --output=mode  names, or Forte Numbers. Major to Major used by default.
 
-  --undef=N       Use N for notes that cannot be converted.
+  --nos          Allow for non-octave scales. Necessary if doing crazy
+                 things with intervals in the --input or --output options.
+
+  --undef=N      Use N for notes that cannot be converted.
 
 General options include:
 
-  --raw           Emit raw pitch numbers in output instead of note names.
-  --relative=N    Input is relative to lilypond note N.
-  --contrary      Compute canon in contrary motion.
-  --retrograde    Reverse the output voice.
-  --transpose=N   Transpose output voice by semitones or to a lilypond note.
+  --raw          Emit raw pitch numbers in output instead of note names.
+  --relative=N   Input is relative to lilypond note N (absolute notation is
+                 assumed by default otherwise).
+  --contrary     Compute canon in contrary motion.
+  --retrograde   Reverse the output voice.
+  --transpose=N  Transpose output voice by semitones or to a lilypond note.
 
 Run perldoc(1) on $PROG_NAME for additional documentation.
 
@@ -190,17 +192,10 @@ sub do_modal {
 
   $whoops_undef //= 'x';
 
-  eval {
-    $canon->set_scale_intervals( 'input', _parse_modal_opt($input_mode) )
-      if defined $input_mode;
-    $canon->set_scale_intervals( 'output', _parse_modal_opt($output_mode) )
-      if defined $output_mode;
-  };
-  if ($@) {
-    chomp $@;
-    warn "$PROG_NAME: $@\n";
-    exit 65;    # assume input data error
-  }
+  $canon->set_scale_intervals( 'input', _parse_modal_opt($input_mode) )
+    if defined $input_mode;
+  $canon->set_scale_intervals( 'output', _parse_modal_opt($output_mode) )
+    if defined $output_mode;
 
   my @pitches = $lyu->notes2pitches( map split, @args );
   my @new_phrase;
@@ -265,7 +260,11 @@ Whether to emit output in raw pitch numbers or lilypond note names.
 =item B<--relative>=I<lilypond_note>
 
 Use relative mode in L<Music::LilyPondUtil> and make the input notes
-relative to the specified note.
+relative to the specified note. Without this option, the assumption is
+that the lilypond input is specified in absolute form:
+
+  g d\'                 # MIDI pitches 55 62 (absolute)
+  --relative=g\' g d\'  # MIDI pitches 67 74 (relative to g' or 67)
 
 =item B<--retrograde> B<--noretrograde>
 
@@ -319,18 +318,20 @@ Like B<--input>, except for the output line.
 =item B<--undef>=I<string>
 
 String to use for notes or pitches that cannot be converted. For
-example, under contrary motion, using Major to Major scales, C to C
-sharp is impossible, as there's no space between C and B downwards in
-the output line:
+example, under contrary motion, using Major to Major scales, C to D via
+C sharp is impossible, as there is no space between C and B downwards in
+the output line for the chromatic C sharp:
 
-  $ canonical modal --contrary --undef=WHOOPS c cis
+  $ canonical --relative=c modal --contrary --undef=OOPS c cis d
+  c OOPS b
 
 =back
 
 =head1 FILES
 
-ZSH completion script available in the zsh-compdef directory of the
-L<App::MusicTools> distribution.
+A ZSH completion script is available in the C<zsh-compdef/> directory of 
+the L<App::MusicTools> distribution. Install this to a C<$fpath> 
+directory.
 
 =head1 BUGS
 
@@ -342,6 +343,10 @@ Patches that fix problems or add new features are welcome.
 L<http://github.com/thrig/App-MusicTools>
 
 =head1 SEE ALSO
+
+L<http://www.lilypond.org/> and in particular the Learning and Notation
+manuals should be consulted to understand lilypond note syntax. Or, use
+raw pitch numbers.
 
 L<http://en.wikipedia.org/wiki/Forte_number>
 
