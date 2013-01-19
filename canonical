@@ -296,8 +296,8 @@ listed above, accepts:
 
 =item B<--input>=I<scale_or_forte_number>
 
-Scale name (see L<Music::Scales) or Forte Number to use for the input. A
-colon delimits the ascending versus descending data; commas delimit
+Scale name (see L<Music::Scales>) or Forte Number to use for the input.
+A colon delimits the ascending versus descending data; commas delimit
 specific scale degrees. Examples:
 
   --input=mm
