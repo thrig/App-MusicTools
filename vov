@@ -484,8 +484,9 @@ Value by which to transpose the output by (integer) or to (note name).
 
 =head1 FILES
 
-ZSH completion script available in the zsh-compdef directory of the
-L<App::MusicTools> distribution.
+A ZSH completion script is available in the C<zsh-compdef/> directory of 
+the L<App::MusicTools> distribution. Install this to a C<$fpath> 
+directory.
 
 =head1 BUGS
 

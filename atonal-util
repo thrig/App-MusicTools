@@ -1239,8 +1239,9 @@ Accepts two pitch sets, one per line, via standard input.
 
 =head1 FILES
 
-ZSH completion script available in the zsh-compdef directory of the
-L<App::MusicTools> distribution.
+A ZSH completion script is available in the C<zsh-compdef/> directory of 
+the L<App::MusicTools> distribution. Install this to a C<$fpath> 
+directory.
 
 =head1 BUGS
 
