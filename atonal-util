@@ -13,6 +13,7 @@
 use strict;
 use warnings;
 
+use File::Basename qw/basename/;
 use Getopt::Long qw/GetOptionsFromArray/;
 use List::MoreUtils qw/all any/;
 use Music::AtonalUtil    ();
@@ -24,6 +25,8 @@ use Parse::Range qw/parse_range/;
 use Scalar::Util qw/looks_like_number/;
 
 my $FORTE_NUMBER_RE = qr/[3-9]-[zZ]?\d{1,2}/;
+
+my $PROG_NAME = basename($0);
 
 my %modes = (
   basic            => \&basic,
@@ -78,6 +81,9 @@ my @Std_Opts        = (
   'tension=s' => \$Flag_Tension,
 );
 
+# NOTE may false positive if there is a standalone argument option with
+# the same contents as a mode name; however, with ZSH tab completion I'm
+# using --foo=bar instead of the risk prone --foo bar so meh.
 my @leading_args;
 while ( @ARGV and !exists $modes{ $ARGV[0] } ) {
   push @leading_args, shift @ARGV;
@@ -734,7 +740,7 @@ sub prime_form {
 
 sub print_help {
   warn <<"END_USAGE";
-Usage: $0 [options] mode mode-args
+Usage: $PROG_NAME [options] mode mode-args
 
 Atonal music analysis utilities. Options:
 
@@ -776,7 +782,7 @@ interval class content (and Forte Number, if possible):
 
   $0 --ly basic c e g
 
-Run perldoc(1) on this script for additional documentation.
+Run perldoc(1) on $PROG_NAME for additional documentation.
 
 END_USAGE
   exit 64;
