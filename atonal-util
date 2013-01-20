@@ -209,7 +209,7 @@ sub combos {
   _init_tension('cope');
 
   my @freqs;
-  if ( @args == 1 and $args[0] eq '-' ) {
+  if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
     while ( my $line = readline STDIN ) {
       push @freqs, split ' ', $line;
     }
@@ -471,7 +471,7 @@ sub freq2pitch {
 
   _init_tension('cope');
 
-  if ( @args == 1 and $args[0] eq '-' ) {
+  if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
     chomp( @args = readline STDIN );
   }
 
@@ -594,7 +594,7 @@ sub ly2pitch {
   }
 
   my @notes;
-  if ( @args == 1 and $args[0] eq '-' ) {
+  if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
     chomp( @args = readline STDIN );
   }
 
@@ -685,7 +685,7 @@ sub pitch2freq {
 
   _init_tension('cope');
 
-  if ( @args == 1 and $args[0] eq '-' ) {
+  if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
     chomp( @args = readline STDIN );
   }
 
@@ -718,7 +718,7 @@ sub pitch2ly {
   $Lyu->mode($mode) if defined $mode;
 
   my @pitches;
-  if ( @args == 1 and $args[0] eq '-' ) {
+  if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
     chomp( @args = readline STDIN );
     for my $arg (@args) {
       push @pitches, split ' ', $arg;

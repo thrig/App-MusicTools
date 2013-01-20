@@ -41,10 +41,6 @@ GetOptionsFromArray( \@leading_args, @Std_Opts, 'help|h' => \&emit_help, )
 my $mode = shift;
 emit_help() if !defined $mode or !exists $Modes{$mode};
 
-if ( !@ARGV or @ARGV == 1 and $ARGV[0] eq '-' ) {
-  chomp( @ARGV = <STDIN> );
-}
-
 my $ret;
 eval { $ret = $Modes{$mode}->(@ARGV) };
 if ($@) {
@@ -173,6 +169,10 @@ sub do_exact {
     or emit_help_exact();
   my ( $canon, $lyu ) = _init_obj();
 
+  if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
+    chomp( @args = readline STDIN );
+  }
+
   my @pitches = $lyu->notes2pitches( map split, @args );
   my @new_phrase = $canon->exact_map( \@pitches );
 
@@ -198,6 +198,10 @@ sub do_modal {
     if defined $output_mode;
 
   $whoops_undef //= 'x';
+
+  if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
+    chomp( @args = readline STDIN );
+  }
 
   my @pitches = $lyu->notes2pitches( map split, @args );
   my @new_phrase;
