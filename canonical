@@ -143,6 +143,9 @@ Modal interval mapping. In particular:
   --input=mode   Set the input and output modes. These may be Music::Scales
   --output=mode  names, or Forte Numbers. Major to Major used by default.
 
+  --ep=N         Set the start and end pitch via set_modal_pitches().
+  --sp=N         Necessary if phrase begins on non-tonic scale degree.
+
   --nos          Allow for non-octave scales. Necessary if doing crazy
                  things with intervals in the --input or --output options.
 
@@ -184,11 +187,13 @@ sub do_modal {
   my @args = @_;
   GetOptionsFromArray(
     \@args, @Std_Opts,
-    'help|h'   => \&emit_help_modal,
-    'input=s'  => \my $input_mode,
-    'nos!'     => \$Flag_Non_Octave_Scale,
-    'output=s' => \my $output_mode,
-    'undef=s'  => \my $whoops_undef,
+    'endpitch|ep=s'   => \my $end_pitch,
+    'help|h'          => \&emit_help_modal,
+    'input=s'         => \my $input_mode,
+    'nos!'            => \$Flag_Non_Octave_Scale,
+    'output=s'        => \my $output_mode,
+    'startpitch|sp=s' => \my $start_pitch,
+    'undef=s'         => \my $whoops_undef,
   ) or emit_help_modal();
   my ( $canon, $lyu ) = _init_obj();
 
@@ -196,6 +201,10 @@ sub do_modal {
     if defined $input_mode;
   $canon->set_scale_intervals( 'output', _parse_modal_opt($output_mode) )
     if defined $output_mode;
+
+  $canon->set_modal_pitches( $start_pitch, $end_pitch )
+    if defined $start_pitch
+    or defined $end_pitch;
 
   $whoops_undef //= 'x';
 
@@ -300,6 +309,12 @@ listed above, accepts:
 
 =over 4
 
+=item B<--endpitch>=I<pitch_or_note> | B<--ep>=I<pitch_or_note>
+
+Sets the output mode starting pitch via B<set_modal_pitches>. Probably
+should also be called with B<--startpitch>. Very necessary if the phrase
+begins on a non-tonic scale degree.
+
 =item B<--input>=I<scale_or_forte_number>
 
 Scale name (see L<Music::Scales>) or Forte Number to use for the input.
@@ -322,6 +337,12 @@ octave point.
 
 Like B<--input>, except for the output line.
 
+=item B<--startpitch>=I<pitch_or_note> | B<--sp>=I<pitch_or_note>
+
+Sets the input mode starting pitch via B<set_modal_pitches>. Probably
+should also be called with B<--endpitch>. Very necessary if the phrase
+begins on a non-tonic scale degree.
+
 =item B<--undef>=I<string>
 
 String to use for notes or pitches that cannot be converted. If unset,
@@ -331,6 +352,9 @@ between C and B downwards in the output line for the chromatic C sharp:
 
   $ canonical --relative=c modal --contrary --undef=OOPS c cis d
   c OOPS b
+
+Set this to C<r> or C<s> to have C<lilypond> or C<ly-fu> ignore the
+impossible note.
 
 =back
 
