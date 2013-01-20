@@ -1222,6 +1222,10 @@ specified integer (by default 0, or a no-op), or to the specified note.
   $ atonal-util transpose --transpose=e --ly c e g
   e gis b
 
+Register aware transpositions are possible with the C<canonical> tool of
+the L<App::MusicTools> module, using the B<exact> mode and B<--transpose>
+option.
+
 =item B<transpose_invert> I<--transpose=integer_or_note> I<[--axis=integer_or_note]>
 
 See L<Music::AtonalUtil>. Transposes supplied pitch set by the specified
