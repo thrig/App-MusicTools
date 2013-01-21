@@ -258,6 +258,10 @@ module. Custom questions might be better answered by coding directly
 against L<Music::Canon>, see the C<eg/> directory under the distribution
 of that Perl module for examples.
 
+A major difference between this utility and L<Music::Canon> is that the
+module assumes contrary motion and retrograde by default, while this
+utility does no.
+
 =head1 GLOBAL OPTIONS
 
 This script currently supports the following global command line
