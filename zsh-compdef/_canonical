@@ -68,6 +68,8 @@ _canonical_modal() {
     '--transpose=[transpose by or to]:pitch:_values "pitch" $pitches' \
     '--input=[input mode]:mode:' \
     '--output=[output mode]:mode:' \
+    '--ep=[output linking pitch]:pitch:_values "pitch" $pitches' \
+    '--sp=[input linking pitch]:pitch:_values "pitch" $pitches' \
     '--undef=[undefined conversion marker]:string:' \
     '(--nonos)--nos[enable non-octave scales]'
 }
