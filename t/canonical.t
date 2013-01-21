@@ -37,6 +37,9 @@ my @tests = (
   { cmd      => [qw{./canonical --raw exact --retrograde  1 2 3}],
     expected => [q{3 2 1}],
   },
+  { cmd      => [qw{./canonical --flats exact --transpose=1  c e g}],
+    expected => [q{des f aes}],
+  },
   # Hindemith overtone ordering in G for something more complicated
   { cmd => [
       qw{./canonical --relative=g' --contrary --retrograde exact},

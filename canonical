@@ -21,6 +21,7 @@ my %Modes = (
 my $Flag_Non_Octave_Scale = 0;
 my @Std_Opts              = (
   'contrary!'   => \my $Flag_Contrary,
+  'flats!'      => \my $Flag_Flats,
   'raw!'        => \my $Flag_Raw,
   'relative=s'  => \my $Flag_Relative,
   'retrograde!' => \my $Flag_Retrograde,
@@ -69,6 +70,7 @@ sub _init_obj {
     mode       => 'relative',
     keep_state => 1,
   );
+  $l->chrome( defined $Flag_Flats  ? 'flats'    : 'sharps' );
   $l->mode( defined $Flag_Relative ? 'relative' : 'absolute' );
   $l->prev_note($Flag_Relative) if defined $Flag_Relative;
 
@@ -121,12 +123,13 @@ Usage: $PROG_NAME [opts] exact [exactopts] note1 note2 .. noteN
 
 Exact interval mapping. Options include:
 
-  --raw           Emit raw pitch numbers in output instead of note names.
-  --relative=N    Input is relative to lilypond note N (absolute notation is
-                  assumed by default otherwise).
-  --contrary      Compute canon in contrary motion.
-  --retrograde    Reverse the output voice.
-  --transpose=N   Transpose output voice by semitones or to a lilypond note.
+  --contrary     Compute canon in contrary motion.
+  --flats        Print notes with flats instead of sharps.
+  --raw          Emit raw pitch numbers in output instead of note names.
+  --relative=N   Input is relative to lilypond note N (absolute notation is
+                 assumed by default otherwise).
+  --retrograde   Reverse the output voice.
+  --transpose=N  Transpose output voice by semitones or to a lilypond note.
 
 Run perldoc(1) on $PROG_NAME for additional documentation.
 
@@ -153,10 +156,11 @@ Modal interval mapping. In particular:
 
 General options include:
 
+  --contrary     Compute canon in contrary motion.
+  --flats        Print notes with flats instead of sharps.
   --raw          Emit raw pitch numbers in output instead of note names.
   --relative=N   Input is relative to lilypond note N (absolute notation is
                  assumed by default otherwise).
-  --contrary     Compute canon in contrary motion.
   --retrograde   Reverse the output voice.
   --transpose=N  Transpose output voice by semitones or to a lilypond note.
 
@@ -264,6 +268,10 @@ switches. These can also be specified to each of the underlying modes.
 =item B<--contrary> B<--nocontrary>
 
 Whether to compute output line in contrary motion or not.
+
+=item B<--flats> B<--noflats>
+
+Print notes with flats instead of sharps.
 
 =item B<--help>
 
