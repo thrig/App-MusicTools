@@ -1,7 +1,9 @@
 #!perl
 
 # Command line interface to the atonal routines in the Music::AtonalUtil
-# module. Run perldoc(1) on this script for additional documentation.
+# module (and otherwise a dumping ground for music related wrangling).
+#
+# Run perldoc(1) on this script for additional documentation.
 #
 # ZSH completion script available in the zsh-compdef directory of the
 # App::MusicTools distribution.
@@ -16,8 +18,9 @@ use warnings;
 use File::Basename qw/basename/;
 use Getopt::Long qw/GetOptionsFromArray/;
 use List::MoreUtils qw/all any/;
-use Music::AtonalUtil    ();
-use Music::LilyPondUtil  ();
+use Music::AtonalUtil   ();
+use Music::LilyPondUtil ();
+use Music::Scales qw/get_scale_nums/;
 use Music::Tension::Cope ();
 # untested with --tension
 #use Music::Tension::PlompLevelt ();
@@ -68,6 +71,7 @@ my %modes = (
   transpose           => \&transpose,
   transpose_invert    => \&transpose_invert,
   variances           => \&variances,
+  whatscalesfit       => \&whatscalesfit,
   zrelation           => \&zrelation,
 );
 
@@ -116,6 +120,30 @@ exit 0;
 ########################################################################
 #
 # SUBROUTINES
+
+# utility for whatscalesfit
+sub _fit_scale {
+  my ( $scale, $pset, $scale_set, $is_dsc ) = @_;
+
+  my $dsc_flag = $is_dsc ? 'DSC' : ' ';
+
+  for my $transpose ( 0 .. 11 ) {
+    my @scale_nums = map { my $t = $_ + $transpose; $t } @$scale_set;
+    my %seen;
+    @seen{ map { my $p = $_ % $scale_degrees; $p } @scale_nums } = ();
+    if ( all { exists $seen{$_} } @$pset ) {
+      my $tonic = $Lyu->p2ly($transpose);
+      $tonic =~ s/is/#/;
+      $tonic =~ s/es/b/;
+
+      my $scale_fmt = join '', ('%-6s') x @scale_nums;
+      my $scale_notes = sprintf $scale_fmt, $Lyu->p2ly(@scale_nums);
+
+      printf "%-3s%-18s%-8s%s\n", "\u$tonic", "\u$scale", $dsc_flag,
+        $scale_notes;
+    }
+  }
+}
 
 sub _init_tension {
   my ($override) = @_;
@@ -937,6 +965,31 @@ sub variances {
     rs => $Flag_Record_Sep );
 }
 
+sub whatscalesfit {
+  my (@args) = @_;
+  GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
+  $Lyu->chrome('flats') if $Flag_Flat;
+
+  my $pset = args2pitchset(@args);
+  for my $p (@$pset) {
+    $p %= $scale_degrees;
+  }
+
+  my @scales =
+    qw/major dorian phrygian lydian mixolydian aeolian locrian blues/;
+  push @scales, "harmonic minor", "melodic minor", "hungarian minor";
+
+  for my $scale (@scales) {
+    my @asc = get_scale_nums($scale);
+    _fit_scale( $scale, $pset, \@asc );
+
+    my @dsc = get_scale_nums( $scale, 1 );
+    if ( join( ' ', @asc ) ne join( ' ', reverse @dsc ) ) {
+      _fit_scale( $scale, $pset, \@dsc, 1 );
+    }
+  }
+}
+
 sub zrelation {
   emit_pitch_set( [ $Atu->zrelation( @{ stdin2pitchsets() } ) ],
     lyflag => 0 );
@@ -1234,6 +1287,13 @@ integer, or to the specified note. Default axis for inversion is 0 (c).
 =item B<variances>
 
 Accepts two pitch sets, one per line, via standard input.
+
+=item B<whatscalesfit>
+
+Given a list of pitches or notes, shows what scales, if any, fit those
+notes. Only diatonics of the scale are considered; there is no support
+at present for also matching on bVI or other common chromatic
+alterations.
 
 =item B<zrelation>
 

@@ -24,6 +24,7 @@ my %params = (
     'Music::Canon'            => 0.21,
     'Music::Chord::Positions' => 0,
     'Music::LilyPondUtil'     => 0.10,
+    'Music::Scales'           => 0,
     'Music::Tension'          => 0.60,
     'Parse::Range'            => 0,
     'Scalar::Util'            => 0,

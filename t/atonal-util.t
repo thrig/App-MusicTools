@@ -150,6 +150,18 @@ my @tests = (
   { cmd      => [qw{./atonal-util transpose_invert --transpose=3 1 2 3}],
     expected => ['2,1,0'],
   },
+  { cmd      => [qw{./atonal-util whatscalesfit c d e f g a b}],
+    expected => [
+      'C  Major                     c     d     e     f     g     a     b',
+      'D  Dorian                    d     e     f     g     a     b     c',
+      'E  Phrygian                  e     f     g     a     b     c     d',
+      'F  Lydian                    f     g     a     b     c     d     e',
+      'G  Mixolydian                g     a     b     c     d     e     f',
+      'A  Aeolian                   a     b     c     d     e     f     g',
+      'B  Locrian                   b     c     d     e     f     g     a',
+      'A  Melodic minor     DSC     g     f     e     d     c     b     a',
+    ],
+  },
 );
 
 # Util.pm has a was-something-on-stderr test in addition to the one

@@ -63,6 +63,7 @@ _atonalutil_mode() {
     'transpose:Tn' \
     'transpose_invert:TnI' \
     'variances:intersection, difference, and union of two sets' \
+    'whatscalesfit:what scales match the given notes'
     'zrelation:whether two sets share same ICC'
   )
 
@@ -284,5 +285,10 @@ _atonalutil_variances() {
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]' \
     '--rs=[record separator]:sep:'
+}
+_atonalutil_whatscalesfit() {
+  _arguments -s \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]'
 }
 _atonalutil_zrelation() { }
