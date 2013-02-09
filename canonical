@@ -233,7 +233,11 @@ sub do_modal {
   }
   @new_phrase = reverse @new_phrase if $canon->get_retrograde;
 
-  print join( ' ', $Flag_Raw ? @new_phrase : $lyu->p2ly(@new_phrase) ), "\n";
+  print join( ' ',
+      $Flag_Raw
+    ? @new_phrase
+    : $lyu->p2ly( map { defined($_) ? $_ : 'r' } @new_phrase ) ),
+    "\n";
   return 0;
 }
 
