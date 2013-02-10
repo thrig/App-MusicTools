@@ -39,15 +39,16 @@ my $SCORE_SUFFIX = '.pdf';
 
 my @CLEANUP_SUFFIX = qw/ps pdf/;
 
-my $tempo       = 130;
-my $instrument  = "acoustic grand";
-my $do_open     = 0;
-my $relative    = q{c'};
+my $do_open    = 0;
+my $instrument = "acoustic grand";
+my $is_absolute;
 my $partial     = q{};
+my $relative    = q{c'};
+my $repeats     = 1;
 my $save_layout = 0;
 my $skip_midi   = 0;
-my ( $is_absolute, $repeats );
 my $sleep_kluge = 0;
+my $tempo       = 130;
 
 ########################################################################
 #
@@ -74,7 +75,7 @@ GetOptions(
   'open'           => \$do_open,
   'partial|p=s'    => \$partial,
   'relative|b=s'   => \$relative,
-  'repeats|r=s'    => \$repeats,
+  'repeats|r=i'    => \$repeats,
   'silent|s'       => \$skip_midi,
   'sleep|S=s'      => \$sleep_kluge,
   'tempo|t=s'      => \$tempo,
