@@ -20,12 +20,12 @@ my %Modes = (
 
 my $Flag_Non_Octave_Scale = 0;
 my @Std_Opts              = (
-  'contrary!'   => \my $Flag_Contrary,
-  'flats!'      => \my $Flag_Flats,
-  'raw!'        => \my $Flag_Raw,
-  'relative=s'  => \my $Flag_Relative,
-  'retrograde!' => \my $Flag_Retrograde,
-  'transpose=s' => \my $Flag_Transpose,
+  'contrary|c!'    => \my $Flag_Contrary,
+  'flats!'         => \my $Flag_Flats,
+  'raw!'           => \my $Flag_Raw,
+  'relative|rel=s' => \my $Flag_Relative,
+  'retrograde|r!'  => \my $Flag_Retrograde,
+  'transpose|t=s'  => \my $Flag_Transpose,
 );
 
 # NOTE may false positive if there is a standalone argument option with
@@ -273,7 +273,7 @@ switches. These can also be specified to each of the underlying modes.
 
 =over 4
 
-=item B<--contrary> B<--nocontrary>
+=item B<--contrary> | B<-c> | B<--nocontrary>
 
 Whether to compute output line in contrary motion or not.
 
@@ -289,7 +289,7 @@ Emit some help information and exit.
 
 Whether to emit output in raw pitch numbers or lilypond note names.
 
-=item B<--relative>=I<lilypond_note>
+=item B<--relative>=I<lilypond_note> | B<--rel>=...
 
 Use relative mode in L<Music::LilyPondUtil> and make the input notes
 relative to the specified note. Without this option, the assumption is
@@ -298,11 +298,11 @@ that the lilypond input is specified in absolute form:
   g d\'                 # MIDI pitches 55 62 (absolute)
   --relative=g\' g d\'  # MIDI pitches 67 74 (relative to g' or 67)
 
-=item B<--retrograde> B<--noretrograde>
+=item B<--retrograde> | B<-r> | B<--noretrograde>
 
 Whether to reverse the output phrase or not.
 
-=item B<--transpose>=I<pitch_or_lilypond_note>
+=item B<--transpose>=I<pitch_or_lilypond_note> | B<-t>=...
 
 Transpose to the first note of the output phrase by the specified amount
 in semitones (integer) or to the specified lilypond note name.
