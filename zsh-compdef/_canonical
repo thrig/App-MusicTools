@@ -68,11 +68,12 @@ _canonical_modal() {
     '(--noraw)--raw[emit pitch numbers not note names]' \
     {--relative=,--rel=}'[input relative to]:note:_values "note" $notes' \
     '(--noretrograde)'{--retrograde,-r}'[reverse output phrase]' \
-    {--transpose=,-t=}'[transpose by or to]:pitch:_values "pitch" $pitches'
+    {--transpose=,-t=}'[transpose by or to]:pitch:_values "pitch" $pitches' \
+    '--chrome=[chromatic weighting]:weight:(-1 0 1)' \
+    '--ep=[output linking pitch]:pitch:_values "pitch" $pitches' \
     '--input=[input mode]:mode:' \
     '--output=[output mode]:mode:' \
-    '--ep=[output linking pitch]:pitch:_values "pitch" $pitches' \
+    '(--nonos)--nos[enable non-octave scales]' \
     '--sp=[input linking pitch]:pitch:_values "pitch" $pitches' \
-    '--undef=[undefined conversion marker]:string:' \
-    '(--nonos)--nos[enable non-octave scales]'
+    '--undef=[undefined conversion marker]:string:'
 }

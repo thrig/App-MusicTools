@@ -27,6 +27,7 @@ my @Std_Opts              = (
   'retrograde|r!'  => \my $Flag_Retrograde,
   'transpose|t=s'  => \my $Flag_Transpose,
 );
+my $chrome_weight = 0;
 
 # NOTE may false positive if there is a standalone argument option with
 # the same contents as a mode name; however, with ZSH tab completion I'm
@@ -59,6 +60,7 @@ exit $ret;
 # globally or as mode options.
 sub _init_obj {
   my $c = Music::Canon->new(
+    chrome_weight     => $chrome_weight,
     contrary          => $Flag_Contrary,
     non_octave_scales => $Flag_Non_Octave_Scale,
     retrograde        => $Flag_Retrograde,
@@ -143,11 +145,13 @@ Usage: $PROG_NAME [opts] modal --input=mode --output=mode notes...
 
 Modal interval mapping. In particular:
 
-  --input=mode   Set the input and output modes. These may be Music::Scales
-  --output=mode  names, or Forte Numbers. Major to Major used by default.
+  --chrome=N     Chrome weighting. Default is 0. See Music::Canon.
 
   --ep=N         Set the start and end pitch via set_modal_pitches().
   --sp=N         Necessary if phrase begins on non-tonic scale degree.
+
+  --input=mode   Set the input and output modes. These may be Music::Scales
+  --output=mode  names, or Forte Numbers. Major to Major used by default.
 
   --nos          Allow for non-octave scales. Necessary if doing crazy
                  things with intervals in the --input or --output options.
@@ -191,6 +195,7 @@ sub do_modal {
   my @args = @_;
   GetOptionsFromArray(
     \@args, @Std_Opts,
+    'chrome=i'        => \$chrome_weight,
     'endpitch|ep=s'   => \my $end_pitch,
     'help|h'          => \&emit_help_modal,
     'input=s'         => \my $input_mode,
@@ -324,6 +329,12 @@ Modal interval canon computation. In addition to the global options
 listed above, accepts:
 
 =over 4
+
+=item B<--chrome>=I<troolean>
+
+Chrome weighting. Default is 0, for proportional. Negative or positive
+values use the literal chromatic offset from the bottom up or top down,
+depending. See L<Music::Canon> for details.
 
 =item B<--endpitch>=I<pitch_or_note> | B<--ep>=I<pitch_or_note>
 

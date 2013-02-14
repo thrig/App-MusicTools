@@ -61,6 +61,21 @@ my @tests = (
     ],
     expected => [q{-19 -17 -15 -13 -12 -10 -8 -7 -5 -3 -1 0}],
   },
+  { cmd      => [qw{./canonical --rel=c modal --flats --sp=c --ep=bes}, '--output=1,4,1,4', qw{c cis d}],
+    expected => [q{bes x b}],
+  },
+  { cmd      => [qw{./canonical --rel=c modal --flats --sp=c --ep=aes}, '--output=2,1,4,1', qw{c cis d}],
+    expected => [q{aes a bes}],
+  },
+  { cmd      => [qw{./canonical --rel=c modal --flats --sp=c --ep=b}, '--output=4,1,4,2', qw{c cis d}],
+    expected => [q{b des ees}],
+  },
+  { cmd      => [qw{./canonical --rel=c modal --chrome=-1 --flats --sp=c --ep=b}, '--output=4,1,4,2', qw{c cis d}],
+    expected => [q{b c ees}],
+  },
+  { cmd      => [qw{./canonical --rel=c modal --chrome=1 --flats --sp=c --ep=b}, '--output=4,1,4,2', qw{c cis d}],
+    expected => [q{b d ees}],
+  },
 );
 
 for my $cmd (@help_commands) {
