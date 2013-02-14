@@ -46,6 +46,7 @@ _atonalutil_mode() {
     'ly2pitch:lilypond note name to pitch number' \
     'multiply:multiplication' \
     'normal_form:normal_form' \
+    'notes2time:convert note values to time durations' \
     'pcs2forte:return Forte Number for a given pitch set' \
     'pcs2intervals:pitch set to intervals' \
     'pitch2freq:MIDI pitch to frequency conversion' \
@@ -194,6 +195,12 @@ _atonalutil_normal_form() {
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]' \
     '--rs=[record separator]:sep:'
+}
+_atonalutil_notes2time() {
+  _arguments -s \
+    '--beats=[beat value]:beat:(16 8 4 2 1)' \
+    '(--noms)--ms[emit time in ms]' \
+    '--tempo=[beats per minute]:bpm:(40 60 66 72 88 96 108 120 144 168 196)'
 }
 _atonalutil_pcs2forte() { }
 _atonalutil_pcs2intervals() {

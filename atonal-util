@@ -17,10 +17,12 @@ use warnings;
 
 use File::Basename qw/basename/;
 use Getopt::Long qw/GetOptionsFromArray/;
+use List::Util qw/sum/;
 use List::MoreUtils qw/all any/;
 use Music::AtonalUtil   ();
 use Music::LilyPondUtil ();
 use Music::Scales qw/get_scale_nums/;
+use Music::Tempo qw/bpm_to_ms/;
 use Music::Tension::Cope ();
 # untested with --tension
 #use Music::Tension::PlompLevelt ();
@@ -32,12 +34,10 @@ my $FORTE_NUMBER_RE = qr/[3-9]-[zZ]?\d{1,2}/;
 my $PROG_NAME = basename($0);
 
 my %modes = (
-  basic            => \&basic,
-  circular_permute => \&circular_permute,
-  combos           => \&combos,
-  complement       => \&complement,
-  # TODO
-  #dur2notes              => \&dur2notes,
+  basic                  => \&basic,
+  circular_permute       => \&circular_permute,
+  combos                 => \&combos,
+  complement             => \&complement,
   equivs                 => \&equivs,
   findall                => \&findall,
   findin                 => \&findin,
@@ -52,27 +52,26 @@ my %modes = (
   ly2pitch               => \&ly2pitch,
   multiply               => \&multiply,
   normal_form            => \&normal_form,
-  # TODO
-  #notes2dur              => \&notes2time,
-  pcs2forte           => \&pcs2forte,
-  pcs2intervals       => \&pcs2intervals,
-  pitch2freq          => \&pitch2freq,
-  pitch2intervalclass => \&pitch2intervalclass,
-  pitch2ly            => \&pitch2ly,
-  prime_form          => \&prime_form,
-  recipe              => \&recipe,
-  retrograde          => \&retrograde,
-  rotate              => \&rotate,
-  set_complex         => \&set_complex,
-  subsets             => \&subsets,
-  tcis                => \&tcis,
-  tcs                 => \&tcs,
-  tension             => \&tension,
-  transpose           => \&transpose,
-  transpose_invert    => \&transpose_invert,
-  variances           => \&variances,
-  whatscalesfit       => \&whatscalesfit,
-  zrelation           => \&zrelation,
+  notes2time             => \&notes2time,
+  pcs2forte              => \&pcs2forte,
+  pcs2intervals          => \&pcs2intervals,
+  pitch2freq             => \&pitch2freq,
+  pitch2intervalclass    => \&pitch2intervalclass,
+  pitch2ly               => \&pitch2ly,
+  prime_form             => \&prime_form,
+  recipe                 => \&recipe,
+  retrograde             => \&retrograde,
+  rotate                 => \&rotate,
+  set_complex            => \&set_complex,
+  subsets                => \&subsets,
+  tcis                   => \&tcis,
+  tcs                    => \&tcs,
+  tension                => \&tension,
+  transpose              => \&transpose,
+  transpose_invert       => \&transpose_invert,
+  variances              => \&variances,
+  whatscalesfit          => \&whatscalesfit,
+  zrelation              => \&zrelation,
 );
 
 my ( $Flag_Flat, $Flag_Lyout, $Flag_Quiet, $Flag_Tension );
@@ -120,6 +119,34 @@ exit 0;
 ########################################################################
 #
 # SUBROUTINES
+
+sub _ms2abbr_time {
+  my $difference = int shift;
+
+  return "0ms" if $difference == 0;
+
+  my $ms = $difference % 1000;
+  $difference = ( $difference - $ms ) / 1000;
+  my $seconds = $difference % 60;
+  $difference = ( $difference - $seconds ) / 60;
+  my $minutes = $difference % 60;
+  $difference = ( $difference - $minutes ) / 60;
+
+  #  my $hours = $difference;
+  my $hours = $difference % 24;
+  $difference = ( $difference - $hours ) / 24;
+  my $days  = $difference % 7;
+  my $weeks = ( $difference - $days ) / 7;
+
+  # better way to do this?
+  my $temp = ($weeks) ? "${weeks}w " : q{};
+  $temp .= ($days)    ? "${days}d "    : q{};
+  $temp .= ($hours)   ? "${hours}h "   : q{};
+  $temp .= ($minutes) ? "${minutes}m " : q{};
+  $temp .= ($seconds) ? "${seconds}s " : q{};
+  $temp .= ($ms)      ? "${ms}ms"      : q{};
+  return $temp;
+}
 
 # utility for whatscalesfit
 sub _fit_scale {
@@ -303,10 +330,6 @@ sub complement {
   GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
   emit_pitch_set( $Atu->complement( args2pitchset(@args) ) );
-}
-
-sub dur2notes {
-  # TODO
 }
 
 sub emit_pitch_set {
@@ -657,36 +680,38 @@ sub normal_form {
     rs => $Flag_Record_Sep );
 }
 
-sub notes2dur {
+sub notes2time {
   my (@args) = @_;
-  my ( @durations, $tempo );
+  my $beats  = 4;
+  my $tempo  = 60;
+  GetOptionsFromArray(
+    \@args,
+    'beats=i' => \$beats,
+    'ms!'     => \my $in_ms,
+    'tempo=i' => \$tempo,
+  ) or print_help();
 
-  for my $arg (@args) {
-    # last matching tempo wins; this allows for aliases "foo 'atonal-
-    # util notes2dur 4=120'" to set a default tempo, except that 'foo
-    # 4=144 ...' then wins over that default.
-    if ( $arg =~ m/([^=]+)=(\d+)/ ) {
-      # TODO but must multiply it as cannot assume LHS is quarternote...
-      # convert to "beats per second" or the like?
-      $tempo = $2;
-
-    } elsif ( $arg =~ m/(\d+)([.]*)/ ) {
-      my $note = $1;
-      my $dots = $2 // '';
-
-      # convert these to "beat counts" in some unit, shove onto durations?
-
+  my @durations;
+  for my $notespec (@args) {
+    if ( $notespec =~ m/(\d+)([.]+)?/ ) {
+      my $dur = $beats / $1;
+      my $dots = length $2 || 0;
+      push @durations, 2 * $dur - ( $dur / 2**$dots );
     } else {
-      die "unable to parse duration from '$arg'\n";
+      die "unable to parse duration from '$notespec'\n";
     }
   }
 
-  if ( !defined $tempo ) {
-    warn "notice: using tempo 4=120 as none specified\n" unless $Flag_Quiet;
+  my $beat_ms = bpm_to_ms( $tempo, $beats );
+  for my $d (@durations) {
+    my $d_ms = $d * $beat_ms;
+    print( ( $in_ms ? $d_ms : _ms2abbr_time($d_ms) ), "\n" );
   }
 
-  # tally up "beat counts" and figure how much time occupied in total,
-  # print that formatted into buckets.
+  if ( @durations > 1 ) {
+    my $total_ms = sum(@durations) * $beat_ms;
+    print( '= ' . ( $in_ms ? $total_ms : _ms2abbr_time($total_ms) ), "\n" );
+  }
 }
 
 sub pcs2forte {
@@ -1195,6 +1220,13 @@ See L<Music::AtonalUtil>.
 =item B<normal_form>
 
 See L<Music::AtonalUtil>.
+
+=item B<notes2time> [ I<--ms> ] [ I<--tempo=bpm> ] [ I<--beats=b> ] notedurs
+
+Converts note durations (for example 4 for a quarter note or 4. for a
+dotted quarter note) to time, which is shown in a condensed form, unless
+I<--ms> is supplied, in which case the duration is shown in
+milliseconds.
 
 =item B<pcs2forte>
 
