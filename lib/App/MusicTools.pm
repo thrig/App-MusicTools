@@ -6,7 +6,7 @@ use 5.010000;
 use strict;
 use warnings;
 
-our $VERSION = '0.97';
+our $VERSION = '1.00';
 
 1;
 __END__
@@ -23,6 +23,9 @@ App-MusicTools - command line utilities for music composition and analysis
 
   $ canonical --contrary --retrograde modal c f g e c
   c g, f, a, c
+
+  $ canonical modal --input=dorian --output=locrian d e f g a b c
+  d dis f g gis ais c
 
   $ export MIDI_EDITOR=timidity
   $ ly-fu --instrument=banjo c des ees c des bes c aes
@@ -41,6 +44,8 @@ App-MusicTools - command line utilities for music composition and analysis
   <g b d f> 	% V7
   <c e g> 	% I
 
+And more!
+
 =head1 DESCRIPTION
 
 This distribution contains various command line utilities related to
@@ -56,10 +61,8 @@ up tab completion.
 
 =head1 BUGS
 
-As of Dec 2012, C<vov> is a bit buggy for some cases, such as C<bVII>,
-need to rework the triad building logic. For other bugs, send patches,
-as there are probably lots between my bad Perl and badder understanding
-of music theory.
+Probably lots. Send patches, as there are probably lots between my bad
+Perl and badder understanding of music theory.
 
 =head1 SEE ALSO
 
@@ -73,8 +76,9 @@ conventions (e.g. fis for F sharp, ees for E flat, etc.)
 
 =item *
 
-C<ly-fu> expects that a MIDI player and PDF viewer are available on
-the system.
+C<ly-fu> expects that a MIDI player and PDF viewer are available on the
+system. Env variables may need to be set or the source code tweaked as
+necessary.
 
 =item *
 

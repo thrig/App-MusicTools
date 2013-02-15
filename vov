@@ -23,6 +23,7 @@ use List::Util qw/sum/;
 # tonal needs.
 use Music::AtonalUtil   ();
 use Music::LilyPondUtil ();
+use Music::Scales qw/get_scale_nums is_scale/;
 use Text::Roman qw/roman2int/;
 
 # Leading sharp/flats adjust the tonic up or down (might also support
@@ -49,25 +50,10 @@ my $MAX_CHORD_FACTOR =
   ( $MAX_SCALE_DEGREE % 2 == 0 ? $MAX_SCALE_DEGREE : $MAX_SCALE_DEGREE * 2 )
   - 1;
 my $DEFAULT_CHORD_FACTOR = 5;    # a 5th
-
-my $DEG_IN_SCALE = 12;
-
-my $Mode  = 'major';
-my %Modes = (
-  ionian     => [qw(2 2 1 2 2 2 1)],
-  lydian     => [qw(2 2 2 1 2 2 1)],
-  mixolydian => [qw(2 2 1 2 2 1 2)],
-  dorian     => [qw(2 1 2 2 2 1 2)],
-  amdorian   => [qw(2 1 2 1 2 2 2)],
-  aeolian    => [qw(2 1 2 2 1 2 2)],
-  mminor     => [qw(2 1 2 2 2 2 1)],
-  hminor     => [qw(2 1 2 2 1 3 1)],
-  hunminor   => [qw(2 1 3 2 1 3 1)],
-  phrygian   => [qw(1 2 2 2 1 2 2)],
-  locrian    => [qw(1 2 2 1 2 2 2)],
-);
-$Modes{'major'} = $Modes{'ionian'};
-$Modes{'minor'} = $Modes{'aeolian'};
+my $DEG_IN_SCALE         = 12;
+my @MODES =
+  qw/aeolian amdorian dorian hminor hunminor ionian locrian lydian major minor mixolydian mminor phrygian/;
+my $mode_name = 'major';
 
 my $atu = Music::AtonalUtil->new;
 # Chords generated from the root up, with no notion of register
@@ -81,23 +67,23 @@ GetOptions(
   'help'          => \&print_help,
   'listmodes'     => \my $list_modes,
   'minor'         => \my $use_minor,
-  'mode=s'        => \$Mode,
+  'mode=s'        => \$mode_name,
   'natural'       => \my $use_naturals,
   'outputtmpl=s'  => \$output_tmpl,
   'raw'           => \my $raw_output,
   'transpose|t=s' => \my $Transpose,
-) || print_help();
+) or print_help();
 
 if ($list_modes) {
-  print "$_\n" for sort keys %Modes;
+  print "$_\n" for @MODES;
   exit 0;
 }
 print_help() unless @ARGV;
 
 $lyu->chrome('flats') if $use_flats;
 
-$Mode = 'minor' if $use_minor;
-die "error: no such mode '$Mode'" unless exists $Modes{$Mode};
+$mode_name = 'minor' if $use_minor;
+die "error: no such mode '$mode_name'" unless is_scale $mode_name;
 
 $Default_Factor //= $DEFAULT_CHORD_FACTOR;
 $Transpose = $lyu->notes2pitches($Transpose) if $Transpose;
@@ -106,23 +92,24 @@ $output_tmpl =~ s/(\\.)/qq!"$1"!/eeg;
 $output_tmpl .= "\n" unless $output_tmpl =~ m/\s$/;
 
 for my $vov_spec (@ARGV) {
-  my @vovs         = reverse split '/', $vov_spec;
-  my $mode         = $Modes{$Mode};
-  my $sd_transpose = 0;
+  my @vovs           = reverse split '/', $vov_spec;
+  my $base_intervals = get_mode_intervals($mode_name);
+  my $cur_intervals  = $base_intervals;
+  my $sd_transpose   = 0;
 
   my ( $prev_root_pitch, $prev_root_sd, $pset, $invert_by );
   for my $vov (@vovs) {
     my ( $root_sd, $factor, $alterations, $inv ) = parse_roman_numeral($vov);
-    my $sds = build_triad_degrees( $root_sd, $factor );
     if ( defined $prev_root_sd ) {
       $sd_transpose = $prev_root_pitch;
       # This rotation trick constrains the pitches of the new relative
       # pitch to those of the overlying mode, as otherwise III/ii
       # assuming major will use pitches not present in the underlying
       # major scale.
-      $mode = $atu->rotate( $Modes{$Mode}, -1 * $prev_root_sd );
+      $cur_intervals = $atu->rotate( $base_intervals, -1 * $prev_root_sd );
     }
-    $pset = sd2ps( $sds, $alterations, $mode, $sd_transpose );
+    my $sds = build_triad_degrees( $root_sd, $factor );
+    $pset = sd2ps( $sds, $alterations, $cur_intervals, $sd_transpose );
 
     $prev_root_pitch = $pset->[0];
     $prev_root_sd    = $root_sd;
@@ -185,6 +172,27 @@ sub build_triad_degrees {
   }
 
   return \@sds;
+}
+
+# Convert pitches from Music::Scales into a list of intervals
+sub get_mode_intervals {
+  my ($name) = @_;
+  my @pitches = get_scale_nums($name);
+  my @intervals;
+
+  for my $i ( 1 .. $#pitches ) {
+    push @intervals, $pitches[$i] - $pitches[ $i - 1 ];
+  }
+
+  # pad out scale with VII to I interval
+  my $sum = sum @intervals;
+  if ( $sum < $DEG_IN_SCALE ) {
+    push @intervals, $DEG_IN_SCALE - $sum;
+  } elsif ( $sum > $DEG_IN_SCALE ) {
+    die
+      "error: do not know what to do with scale larger than $DEG_IN_SCALE\n";
+  }
+  return \@intervals;
 }
 
 # XXX 7ths could use more work? no way to specify MM7 vs. Mm7 (that
@@ -329,6 +337,7 @@ END_HELP
   exit 64;
 }
 
+# convert scale degrees into a set of pitches
 sub sd2ps {
   my ( $sdset, $alterations, $scale_intervals, $transpose ) = @_;
   $alterations //= {};
@@ -446,8 +455,8 @@ Displays help and exits program.
 
 =item B<--listmodes>
 
-List available named scale modes and then exit. Used by ZSH
-compdef script.
+List available named scale modes and then exit. Used by ZSH compdef
+script. The scales listed are a subset of what L<Music::Scales> offers.
 
 =item B<--minor>
 
@@ -455,8 +464,10 @@ Use minor mode (default is major).
 
 =item B<--mode>=I<mode>
 
-Specify named scale mode instead of using B<--intervals>. Available
-modes can be listed with the B<--listmodes> option.
+Specify named scale mode instead of using B<--intervals>. Some modes
+can be listed with the B<--listmodes> option; see L<Music::Scales> for
+the complete list. Only ascending versions of scales are available at
+this time.
 
 =item B<--natural>
 
@@ -490,17 +501,10 @@ directory.
 
 =head1 BUGS
 
-=head2 Reporting Bugs
-
-If the bug is in the latest version, send a report to the author.
-Patches that fix problems or add new features are welcome.
+Lots, probably. If the bug is in the latest version, send a report to
+the author. Patches that fix problems or add new features are welcome.
 
 L<http://github.com/thrig/App-MusicTools>
-
-=head2 Known Issues
-
-bVII and such might be buggy, need to revisit the building-of-triad
-logic soas not to create accidentally augmented chords.
 
 =head1 SEE ALSO
 
@@ -522,7 +526,7 @@ Jeremy Mates
 
 =head1 COPYRIGHT
 
-Copyright (C) 2012 by Jeremy Mates
+Copyright (C) 2012-2013 by Jeremy Mates
 
 This script is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself, either Perl version 5.16 or, at
