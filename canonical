@@ -98,6 +98,31 @@ sub _parse_modal_opt {
   return @ret;
 }
 
+sub _reverse_rhythm {
+  my ($rhythm) = @_;
+
+  my $is_rhythmic = 0;
+  for my $r (@$rhythm) {
+    next if $r eq '';
+    $is_rhythmic = 1;
+    last;
+  }
+  if ($is_rhythmic) {
+    $rhythm->[0] = $Flag_Duration if $rhythm->[0] eq '';
+    for my $i ( 1 .. $#$rhythm ) {
+      $rhythm->[$i] = $rhythm->[ $i - 1 ] if $rhythm->[$i] eq '';
+    }
+  }
+
+  @$rhythm = reverse @$rhythm;
+  if ($is_rhythmic) {
+    # clean up output (omit implicit durations)
+    for my $i ( reverse 1 .. $#$rhythm ) {
+      $rhythm->[$i] = '' if $rhythm->[$i] eq $rhythm->[ $i - 1 ];
+    }
+  }
+}
+
 sub emit_help {
   warn <<"EOH";
 Usage: $PROG_NAME [global opts] mode [mode opts] args
@@ -192,31 +217,10 @@ sub do_exact {
   # not need double parse
   my @pitches = $lyu->notes2pitches( map split, @args );
   my @rhythm = map { /[^\d-](\d+[.]*)/ ? $1 : '' } map split, @args;
+  _reverse_rhythm( \@rhythm ) if $canon->get_retrograde;
 
   my @new_phrase = $canon->exact_map( \@pitches );
   @new_phrase = $lyu->p2ly(@new_phrase) if !$Flag_Raw;
-
-  if ( $canon->get_retrograde ) {
-    # must fully qualify durations if reversing the line, but only if
-    # rhythmic alterations are present
-    my $is_rhythmic = 0;
-    for my $r (@rhythm) {
-      next if $r eq '';
-      $is_rhythmic = 1;
-    }
-    if ($is_rhythmic) {
-      $rhythm[0] = $Flag_Duration if $rhythm[0] eq '';
-      for my $i ( 1 .. $#rhythm ) {
-        $rhythm[$i] = $rhythm[ $i - 1 ] if $rhythm[$i] eq '';
-      }
-    }
-
-    @rhythm = reverse @rhythm;
-    # clean up output by putting implicit durations back in
-    for my $i ( reverse 1 .. $#rhythm ) {
-      $rhythm[$i] = '' if $rhythm[$i] eq $rhythm[ $i - 1 ];
-    }
-  }
 
   for my $i ( 0 .. $#new_phrase ) {
     $new_phrase[$i] .= $rhythm[$i] unless $new_phrase[$i] =~ m/\d/;
@@ -278,25 +282,7 @@ sub do_modal {
 
   if ( $canon->get_retrograde ) {
     @new_phrase = reverse @new_phrase;
-
-    # must fully qualify durations if reversing the line, but only if
-    # rhythmic alterations are present
-    my $is_rhythmic = 0;
-    for my $r (@rhythm) {
-      next if $r eq '';
-      $is_rhythmic = 1;
-    }
-    if ($is_rhythmic) {
-      $rhythm[0] = $Flag_Duration if $rhythm[0] eq '';
-      for my $i ( 1 .. $#rhythm ) {
-        $rhythm[$i] = $rhythm[ $i - 1 ] if $rhythm[$i] eq '';
-      }
-    }
-    @rhythm = reverse @rhythm;
-    # clean up output by putting implicit durations back in
-    for my $i ( reverse 1 .. $#rhythm ) {
-      $rhythm[$i] = '' if $rhythm[$i] eq $rhythm[ $i - 1 ];
-    }
+    _reverse_rhythm( \@rhythm );
   }
 
   for my $i ( 0 .. $#new_phrase ) {
