@@ -47,6 +47,13 @@ my @tests = (
     ],
     expected => [q{cis gis fis' a, f' b, e dis ais d c g'}],
   },
+  # and also rhythmic alterations!
+  { cmd => [
+      qw{./canonical --relative=g' --contrary --retrograde exact},
+      "g4 d'8. c16 e4 b bes ees a, f' aes, fis' cis"
+    ],
+    expected => [q{cis4 gis fis' a, f' b, e dis ais d16 c8. g'4}],
+  },
 
   # modal tests - mostly just copied from Music-Canon/t/Music-
   # Canon.t cases.
@@ -61,20 +68,45 @@ my @tests = (
     ],
     expected => [q{-19 -17 -15 -13 -12 -10 -8 -7 -5 -3 -1 0}],
   },
-  { cmd      => [qw{./canonical --rel=c modal --flats --sp=c --ep=bes}, '--output=1,4,1,4', qw{c cis d}],
+  { cmd => [
+      qw{./canonical --rel=c modal --flats --sp=c --ep=bes},
+      '--output=1,4,1,4', qw{c cis d}
+    ],
     expected => [q{bes x b}],
   },
-  { cmd      => [qw{./canonical --rel=c modal --flats --sp=c --ep=aes}, '--output=2,1,4,1', qw{c cis d}],
+  { cmd => [
+      qw{./canonical --rel=c modal --flats --sp=c --ep=aes},
+      '--output=2,1,4,1', qw{c cis d}
+    ],
     expected => [q{aes a bes}],
   },
-  { cmd      => [qw{./canonical --rel=c modal --flats --sp=c --ep=b}, '--output=4,1,4,2', qw{c cis d}],
+  { cmd => [
+      qw{./canonical --rel=c modal --flats --sp=c --ep=b},
+      '--output=4,1,4,2', qw{c cis d}
+    ],
     expected => [q{b des ees}],
   },
-  { cmd      => [qw{./canonical --rel=c modal --chrome=-1 --flats --sp=c --ep=b}, '--output=4,1,4,2', qw{c cis d}],
+  { cmd => [
+      qw{./canonical --rel=c modal --chrome=-1 --flats --sp=c --ep=b},
+      '--output=4,1,4,2', qw{c cis d}
+    ],
     expected => [q{b c ees}],
   },
-  { cmd      => [qw{./canonical --rel=c modal --chrome=1 --flats --sp=c --ep=b}, '--output=4,1,4,2', qw{c cis d}],
+  { cmd => [
+      qw{./canonical --rel=c modal --chrome=1 --flats --sp=c --ep=b},
+      '--output=4,1,4,2', qw{c cis d}
+    ],
     expected => [q{b d ees}],
+  },
+  # rhythmic foo
+  { cmd => [
+      qw{./canonical --rel=c modal --chrome=1 --flats --sp=c --ep=b},
+      '--output=4,1,4,2', qw{c8.. cis32 d4}
+    ],
+    expected => [q{b8.. d32 ees4}],
+  },
+  { cmd => [qw{./canonical --relative=c modal --retrograde c16 d8. e4 f g}],
+    expected => [q{g4 f e d8. c16}],
   },
 );
 

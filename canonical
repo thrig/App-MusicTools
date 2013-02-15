@@ -18,9 +18,11 @@ my %Modes = (
   modal => \&do_modal,
 );
 
+my $Flag_Duration         = 4;    # default for rhythm qualification
 my $Flag_Non_Octave_Scale = 0;
 my @Std_Opts              = (
   'contrary|c!'    => \my $Flag_Contrary,
+  'duration=s'     => \$Flag_Duration,
   'flats!'         => \my $Flag_Flats,
   'raw!'           => \my $Flag_Raw,
   'relative|rel=s' => \my $Flag_Relative,
@@ -126,6 +128,7 @@ Usage: $PROG_NAME [opts] exact [exactopts] note1 note2 .. noteN
 Exact interval mapping. Options include:
 
   --contrary     Compute canon in contrary motion.
+  --duration=N   Set default duration value.
   --flats        Print notes with flats instead of sharps.
   --raw          Emit raw pitch numbers in output instead of note names.
   --relative=N   Input is relative to lilypond note N (absolute notation is
@@ -146,6 +149,7 @@ Usage: $PROG_NAME [opts] modal --input=mode --output=mode notes...
 Modal interval mapping. In particular:
 
   --chrome=N     Chrome weighting. Default is 0. See Music::Canon.
+  --duration=N   Set default duration value.
 
   --ep=N         Set the start and end pitch via set_modal_pitches().
   --sp=N         Necessary if phrase begins on non-tonic scale degree.
@@ -184,10 +188,41 @@ sub do_exact {
     chomp( @args = readline STDIN );
   }
 
+  # XXX have lyu return object with dur/pitch bits or something so do
+  # not need double parse
   my @pitches = $lyu->notes2pitches( map split, @args );
-  my @new_phrase = $canon->exact_map( \@pitches );
+  my @rhythm = map { /[^\d-](\d+[.]*)/ ? $1 : '' } map split, @args;
 
-  print join( ' ', $Flag_Raw ? @new_phrase : $lyu->p2ly(@new_phrase) ), "\n";
+  my @new_phrase = $canon->exact_map( \@pitches );
+  @new_phrase = $lyu->p2ly(@new_phrase) if !$Flag_Raw;
+
+  if ( $canon->get_retrograde ) {
+    # must fully qualify durations if reversing the line, but only if
+    # rhythmic alterations are present
+    my $is_rhythmic = 0;
+    for my $r (@rhythm) {
+      next if $r eq '';
+      $is_rhythmic = 1;
+    }
+    if ($is_rhythmic) {
+      $rhythm[0] = $Flag_Duration if $rhythm[0] eq '';
+      for my $i ( 1 .. $#rhythm ) {
+        $rhythm[$i] = $rhythm[ $i - 1 ] if $rhythm[$i] eq '';
+      }
+    }
+
+    @rhythm = reverse @rhythm;
+    # clean up output by putting implicit durations back in
+    for my $i ( reverse 1 .. $#rhythm ) {
+      $rhythm[$i] = '' if $rhythm[$i] eq $rhythm[ $i - 1 ];
+    }
+  }
+
+  for my $i ( 0 .. $#new_phrase ) {
+    $new_phrase[$i] .= $rhythm[$i] unless $new_phrase[$i] =~ m/\d/;
+  }
+
+  print join( ' ', @new_phrase ), "\n";
   return 0;
 }
 
@@ -222,6 +257,8 @@ sub do_modal {
   }
 
   my @pitches = $lyu->notes2pitches( map split, @args );
+  my @rhythm = map { /[^\d-](\d+[.]*)/ ? $1 : '' } map split, @args;
+
   my @new_phrase;
   for my $p (@pitches) {
     my $np;
@@ -236,13 +273,37 @@ sub do_modal {
     }
     push @new_phrase, $np;
   }
-  @new_phrase = reverse @new_phrase if $canon->get_retrograde;
+  @new_phrase = $lyu->p2ly( map { defined($_) ? $_ : 'r' } @new_phrase )
+    if !$Flag_Raw;
 
-  print join( ' ',
-      $Flag_Raw
-    ? @new_phrase
-    : $lyu->p2ly( map { defined($_) ? $_ : 'r' } @new_phrase ) ),
-    "\n";
+  if ( $canon->get_retrograde ) {
+    @new_phrase = reverse @new_phrase;
+
+    # must fully qualify durations if reversing the line, but only if
+    # rhythmic alterations are present
+    my $is_rhythmic = 0;
+    for my $r (@rhythm) {
+      next if $r eq '';
+      $is_rhythmic = 1;
+    }
+    if ($is_rhythmic) {
+      $rhythm[0] = $Flag_Duration if $rhythm[0] eq '';
+      for my $i ( 1 .. $#rhythm ) {
+        $rhythm[$i] = $rhythm[ $i - 1 ] if $rhythm[$i] eq '';
+      }
+    }
+    @rhythm = reverse @rhythm;
+    # clean up output by putting implicit durations back in
+    for my $i ( reverse 1 .. $#rhythm ) {
+      $rhythm[$i] = '' if $rhythm[$i] eq $rhythm[ $i - 1 ];
+    }
+  }
+
+  for my $i ( 0 .. $#new_phrase ) {
+    $new_phrase[$i] .= $rhythm[$i] unless $new_phrase[$i] =~ m/\d/;
+  }
+
+  print join( ' ', @new_phrase ), "\n";
   return 0;
 }
 
@@ -281,6 +342,12 @@ switches. These can also be specified to each of the underlying modes.
 =item B<--contrary> | B<-c> | B<--nocontrary>
 
 Whether to compute output line in contrary motion or not.
+
+=item B<--duration>=I<value>
+
+Set the default duration for rhythm handling (C<4> by default). Output
+will be fully qualified with duration values if the I<retrograde> option
+is enabled.
 
 =item B<--flats> B<--noflats>
 

@@ -66,6 +66,9 @@ my @tests = (
   # { cmd      => [qw{./vov VII}],
   #   expected => [q{b dis fis}],
   # },
+  # XXX oh also bvii is bad, that diminishes itself, which I would only
+  # expect to happen to bvii*
+
   # and now transpositions
   { cmd      => [qw{./vov --transpose=g I}],
     expected => [q{g b d}],

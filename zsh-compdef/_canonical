@@ -18,6 +18,7 @@ fi
 _canonical() {
   _arguments \
     '(--nocontrary)'{--contrary,-c}'[use contrary motion]' \
+    '--duration=[default duration]:value:(1 2 4 8 16 32)' \
     '(--raw --noflats)--flats[print notes as flats]' \
     '(- *)--help[emit help and exit]' \
     '(--noraw)--raw[emit pitch numbers not note names]' \
@@ -52,6 +53,7 @@ _canonical_modes() {
 _canonical_exact() {
   _arguments -s \
     '(--nocontrary)'{--contrary,-c}'[use contrary motion]' \
+    '--duration=[default duration]:value:(1 2 4 8 16 32)' \
     '(--raw --noflats)--flats[print notes as flats]' \
     '(- *)--help[emit help and exit]' \
     '(--noraw)--raw[emit pitch numbers not note names]' \
@@ -63,6 +65,7 @@ _canonical_exact() {
 _canonical_modal() {
   _arguments -s \
     '(--nocontrary)'{--contrary,-c}'[use contrary motion]' \
+    '--duration=[default duration]:value:(1 2 4 8 16 32)' \
     '(--raw --noflats)--flats[print notes as flats]' \
     '(- *)--help[emit help and exit]' \
     '(--noraw)--raw[emit pitch numbers not note names]' \
