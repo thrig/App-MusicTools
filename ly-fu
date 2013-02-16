@@ -2,7 +2,7 @@
 
 # Compile and run LilyPond snippets specified on command line:
 #
-# ly-fu c des ees c des bes c aes
+#   ly-fu c des ees c des bes c aes
 #
 # NOTE this utility assumes Mac OS X and timidity by default; set the
 # MIDI_EDITOR and SCORE_VIEWER environment variables, or adjust this
@@ -12,10 +12,10 @@
 #     zathura "$@" 2> /dev/null &|
 #   }
 #
-# Run perldoc(1) on this script for additional documentation.
+# Run perldoc(1) on this file for additional documentation.
 #
-# ZSH completion script available in the zsh-compdef directory of the
-# App::MusicTools distribution.
+# A ZSH completion script is available in the zsh-compdef directory of
+# the App::MusicTools distribution.
 
 use strict;
 use warnings;
@@ -248,6 +248,14 @@ ly-fu - play or display lilypond snippets
   $ ly-fu  -i=trumpet --open "c8 g'4 c,8 g'4 c,8 g'2"
   $ echo c e g | ly-fu -
 
+This utility assumes Mac OS X and timidity by default; set the
+MIDI_EDITOR and SCORE_VIEWER environment variables, or adjust this code
+as necessary. C<zathura> is a handy PDF viewer, if available:
+
+  function open {
+    zathura "$@" 2>/dev/null &|
+  }
+
 =head1 DESCRIPTION
 
 Plays and possibly displays lilypond snippets entered at the command
@@ -260,7 +268,7 @@ manuals should be consulted to understand the lilypond syntax.
 
 =head1 OPTIONS
 
-This script currently supports the following command line switches:
+This program currently supports the following command line switches:
 
 =over 4
 
@@ -298,8 +306,8 @@ Do not play the MIDI.
 
 =item B<--sleep>=I<seconds>
 
-Kluge sleep before unlinking temporary files (if C<SCORE_VIEWER> slow,
-or so forth).
+Kluge sleep before unlinking temporary files (if C<SCORE_VIEWER> is
+slow, or so forth).
 
 =item B<--tempo>=I<tempo>
 
@@ -329,7 +337,8 @@ L<http://github.com/thrig/App-MusicTools>
 =head2 Known Issues
 
 STDERR hidden by default, so if you feed lilypond bad input, you will
-not see or hear anything.
+not see or hear anything, besides the PDF failing to open, or the music
+failing to play. Hence the I<--verbose> flag.
 
 =head1 SEE ALSO
 
@@ -343,7 +352,7 @@ Jeremy Mates
 
 Copyright (C) 2012-2013 by Jeremy Mates
 
-This script is free software; you can redistribute it and/or modify it
+This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself, either Perl version 5.16 or, at
 your option, any later version of Perl 5 you may have available.
 

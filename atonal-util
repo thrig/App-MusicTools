@@ -3,10 +3,10 @@
 # Command line interface to the atonal routines in the Music::AtonalUtil
 # module (and otherwise a dumping ground for music related wrangling).
 #
-# Run perldoc(1) on this script for additional documentation.
+# Run perldoc(1) on this file for additional documentation.
 #
-# ZSH completion script available in the zsh-compdef directory of the
-# App::MusicTools distribution.
+# A ZSH completion script is available in the zsh-compdef directory of
+# the App::MusicTools distribution.
 
 # XXX improve emit_pitch_set (returns a string, so caller can then do
 # what it will -- or have LilyPondUtil sub that knows how to format a

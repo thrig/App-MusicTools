@@ -112,3 +112,40 @@ LOOP: {
 
   return \@possibles;
 }
+
+__END__
+
+=head1 NAME
+
+varionator - generate variations on specified input
+
+=head1 SYNOPSIS
+
+  $ varionator 'c (d f) (g e b) c'
+  $ echo 'c (d f) (g e b) c' | varionator -
+
+=head1 DESCRIPTION
+
+Generates variations. Alternatives should be enclosed in parentheses,
+and will probably need quoting to protect them from the shell.
+
+=head1 BUGS
+
+If the bug is in the latest version, send a report to the author.
+Patches that fix problems or add new features are welcome.
+
+L<http://github.com/thrig/App-MusicTools>
+
+=head1 AUTHOR
+
+Jeremy Mates
+
+=head1 COPYRIGHT
+
+Copyright (C) 2012-2013 by Jeremy Mates
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself, either Perl version 5.16 or, at
+your option, any later version of Perl 5 you may have available.
+
+=cut

@@ -5,10 +5,10 @@
 # direction and so forth from other options. This file uses "scale" and
 # "subset" and "interval series" and "interval vector" interchangeably.
 #
-# Run perldoc(1) on this script for additional documentation.
+# Run perldoc(1) on this file for additional documentation.
 #
-# ZSH completion script available in the zsh-compdef directory of the
-# App::MusicTools distribution.
+# A ZSH completion script is available in the zsh-compdef directory of
+# the App::MusicTools distribution.
 
 use strict;
 use warnings;
@@ -326,7 +326,7 @@ playback and display, for example:
 
 =head1 OPTIONS
 
-This script currently supports the following command line switches:
+This program currently supports the following command line switches:
 
 =over 4
 
@@ -422,7 +422,8 @@ example, search by the major interval sequence for numeric sequences
 that contain it: L<http://oeis.org/search?q=2,2,1,2,2,2,1>
 
 L<Music::Canon> contains routines for mapping series of pitches via
-arbitrary scales or interval sequences to produce new material.
+arbitrary scales or interval sequences to produce new material. See also
+C<canonical> of this distribution.
 
 =head1 AUTHOR
 
@@ -432,7 +433,7 @@ Jeremy Mates
 
 Copyright (C) 2012-2013 by Jeremy Mates
 
-This script is free software; you can redistribute it and/or modify it
+This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself, either Perl version 5.16 or, at
 your option, any later version of Perl 5 you may have available.
 
