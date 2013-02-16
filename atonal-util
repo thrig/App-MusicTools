@@ -1147,7 +1147,7 @@ Emits those pitches not listed in the input. See L<Music::AtonalUtil>.
 Lists equivalents of the input pitch set under various transposition and
 inverse transposition operations.
 
-=item B<findall> I<[--exclude=p1[,p2]]> I<[--fn=nums]> I<[--root=pitch]> I<pitches>
+=item B<findall> I<--exclude=p1[,p2]> I<--fn=nums> I<--root=pitch> I<pitches>
 
 Find all Forte pitch sets in which the given pitches exist. Like
 B<findin>, except iterates over all Forte pitch sets instead of just a
@@ -1160,7 +1160,7 @@ with the named root pitch.
 
   $ atonal-util findall --root=c --fn=4-5 c e g bes
 
-=item B<findin> I<[--exclude=p1[,p2]]> I<[--root=pitch]> I<--pitchset=base_set> I<pitches>
+=item B<findin> I<--exclude=p1[,p2]> I<--root=pitch> I<--pitchset=base_set> I<pitches>
 
 Answers questions such as, given a base pitch set of C<[0,3,7]>, and the
 notes d and bes, what pitch sets (via any B<transpose> or
@@ -1212,7 +1212,7 @@ have not varied.
 
 See L<Music::AtonalUtil>. Default axis is around pitch 0.
 
-=item B<ly2pitch> I<--relative=note> [-|notes...]
+=item B<ly2pitch> I<--relative=note> notes...
 
 Converts lilypond note names to pitch numbers, via absolute mode by
 default. The input unlike in other modes may be quoted to protect the
