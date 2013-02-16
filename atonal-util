@@ -5,7 +5,7 @@
 #
 # Run perldoc(1) on this file for additional documentation.
 #
-# A ZSH completion script is available in the zsh-compdef directory of
+# A ZSH completion script is available in the zsh-compdef/ directory of
 # the App::MusicTools distribution.
 
 # XXX improve emit_pitch_set (returns a string, so caller can then do

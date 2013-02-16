@@ -10,8 +10,11 @@
 #
 # Run perldoc(1) on this file for additional documentation.
 #
-# A ZSH completion script is available in the zsh-compdef directory of
+# A ZSH completion script is available in the zsh-compdef/ directory of
 # the App::MusicTools distribution.
+#
+# XXX the code is something of a mess, and should be simplified and
+# rewritten. But that takes time and energy.
 
 use strict;
 use warnings;
@@ -501,8 +504,13 @@ directory.
 
 =head1 BUGS
 
-Lots, probably. If the bug is in the latest version, send a report to
-the author. Patches that fix problems or add new features are welcome.
+Lots, probably. In particular, diminished chords stay diminished (they
+follow the underlying mode, not the desired quality of the chord), even
+if one specifies C<VII> for major or C<II> for minor. Fixing this would
+be annoying, as the best way would involve a rewrite of the code.
+
+If the bug is in the latest version, send a report to the author.
+Patches that fix problems or add new features are welcome.
 
 L<http://github.com/thrig/App-MusicTools>
 
