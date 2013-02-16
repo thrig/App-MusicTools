@@ -1,6 +1,7 @@
 #!perl
 
-# Compute canon voices via the Music::Canon module.
+# Compute canon voices via the Music::Canon module. Run perldoc(1) on
+# this file for documentation.
 
 use strict;
 use warnings;
@@ -309,31 +310,28 @@ canonical - compute canon voices via the Music::Canon module
 
 =head1 DESCRIPTION
 
-Command line interface to mapping methods present in the L<Music::Canon>
-module. Custom questions might be better answered by coding directly
-against L<Music::Canon>, see the C<eg/> directory under the distribution
-of that Perl module for examples.
-
-A major difference between this utility and L<Music::Canon> is that the
-module assumes contrary motion and retrograde by default, while this
-utility does no.
+Command line interface to the mapping methods present in the
+L<Music::Canon> module. Certain questions might be better answered by
+coding directly against L<Music::Canon>; see the C<eg/> directory under
+the distribution of that Perl module for examples.
 
 =head1 GLOBAL OPTIONS
 
-This script currently supports the following global command line
-switches. These can also be specified to each of the underlying modes.
+This program currently supports the following global command line
+switches. These can also be specified to the underlying modes.
 
 =over 4
 
 =item B<--contrary> | B<-c> | B<--nocontrary>
 
-Whether to compute output line in contrary motion or not.
+Whether to compute the output line in contrary motion or not (default
+is not to).
 
 =item B<--duration>=I<value>
 
-Set the default duration for rhythm handling (C<4> by default). Output
-will be fully qualified with duration values if the I<retrograde> option
-is enabled.
+Set the default duration for rhythm handling (C<4> by default). Rhythm
+handling should be transparent, though does not extend to tied notes,
+triplet groups, or grace notes.
 
 =item B<--flats> B<--noflats>
 
@@ -341,29 +339,31 @@ Print notes with flats instead of sharps.
 
 =item B<--help>
 
-Emit some help information and exit.
+Emits help and exits the program.
 
 =item B<--raw> B<--noraw>
 
-Whether to emit output in raw pitch numbers or lilypond note names.
+Whether to emit output in raw pitch numbers (default is to emit lilypond
+note names).
 
-=item B<--relative>=I<lilypond_note> | B<--rel>=...
+=item B<--relative>=I<lilypond_note>
 
 Use relative mode in L<Music::LilyPondUtil> and make the input notes
 relative to the specified note. Without this option, the assumption is
 that the lilypond input is specified in absolute form:
 
-  g d\'                 # MIDI pitches 55 62 (absolute)
-  --relative=g\' g d\'  # MIDI pitches 67 74 (relative to g' or 67)
+  g d\'             # MIDI pitches 55 62 (absolute)
+  --rel=g\' g d\'   # MIDI pitches 67 74 (relative to g' or 67)
 
 =item B<--retrograde> | B<-r> | B<--noretrograde>
 
-Whether to reverse the output phrase or not.
+Whether to reverse the output phrase or not. (Default is not to.)
 
 =item B<--transpose>=I<pitch_or_lilypond_note> | B<-t>=...
 
 Transpose to the first note of the output phrase by the specified amount
-in semitones (integer) or to the specified lilypond note name.
+in semitones (integer) or to the specified lilypond note name. (Default
+is no transposition.)
 
 =back
 
@@ -385,21 +385,23 @@ listed above, accepts:
 
 =item B<--chrome>=I<troolean>
 
-Chrome weighting. Default is 0, for proportional. Negative or positive
-values use the literal chromatic offset from the bottom up or top down,
-depending. See L<Music::Canon> for details.
+Chrome weighting. Default is 0, for proportional weighting. Negative or
+positive values use the literal chromatic offset from the input mode at
+the bottom or top of the appropriate interval in the output mode. See
+L<Music::Canon> for details. The weighting only applies when the output
+scale has steps of three or more semitones (e.g. Hugarian minor,
+pentatonic scales, and so forth).
 
 =item B<--endpitch>=I<pitch_or_note> | B<--ep>=I<pitch_or_note>
 
-Sets the output mode starting pitch via B<set_modal_pitches>. Probably
-should also be called with B<--startpitch>. Very necessary if the phrase
-begins on a non-tonic scale degree.
+Sets the output mode starting pitch. Probably should also be called with
+B<--startpitch>.
 
 =item B<--input>=I<scale_or_forte_number>
 
-Scale name (see L<Music::Scales>) or Forte Number to use for the input.
-A colon delimits the ascending versus descending data; commas delimit
-specific scale degrees. Examples:
+Scale name (see L<Music::Scales>) or Forte Number or interval list to
+use for the input. A colon delimits the ascending versus descending
+versions of the scale; commas delimit specific scale degrees. Examples:
 
   --input=mm
   --input=major:minor
@@ -409,9 +411,8 @@ See L<Music::Canon> for the algorithm that maps input to output mode.
 
 =item B<--nos>
 
-Allow non-octave scales. Necessary if the scale intervals sum up to
-more than 12, or if scales must repeat before the usual 12-pitch
-octave point.
+Allow non-octave scales. Necessary if the scale intervals sum up to more
+than 12, or if scales repeat not at the usual 12-pitch octave point.
 
 =item B<--output>=I<scale_or_forte_number>
 
@@ -420,8 +421,9 @@ Like B<--input>, except for the output line.
 =item B<--startpitch>=I<pitch_or_note> | B<--sp>=I<pitch_or_note>
 
 Sets the input mode starting pitch via B<set_modal_pitches>. Probably
-should also be called with B<--endpitch>. Very necessary if the phrase
-begins on a non-tonic scale degree.
+should also be called with B<--endpitch>. Necessary if the phrase begins
+on a non-tonic scale degree, as otherwise the input mode will shift to
+be based on that now-the-tonic note.
 
 =item B<--undef>=I<string>
 
@@ -490,6 +492,9 @@ raw pitch numbers.
 
 L<http://en.wikipedia.org/wiki/Forte_number>
 
+"The Technique of Canon" and "Foundation Studies in Fugue" by
+Hugo Norden.
+
 L<Music::Canon>, L<Music::LilyPondUtil>, L<Music::Scales>
 
 =head1 AUTHOR
@@ -500,7 +505,7 @@ Jeremy Mates
 
 Copyright (C) 2013 by Jeremy Mates
 
-This script is free software; you can redistribute it and/or modify it
+This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself, either Perl version 5.16 or, at
 your option, any later version of Perl 5 you may have available.
 
