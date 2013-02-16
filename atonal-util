@@ -493,6 +493,8 @@ TRANSINV: for my $i ( 0 .. $Atu->scale_degrees - 1 ) {
 
 sub fnums {
   my (@args) = @_;
+  GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
+  _init_tension('cope') if $Flag_Tension;
 
   my $fns = $Atu->fnums;
   for my $fn ( sort keys %$fns ) {
@@ -1052,22 +1054,24 @@ Among many other options.
 
 =head1 DESCRIPTION
 
-Routines for atonal music composition and analysis, plus other random
-music theory related tasks. Global options and an operating mode
-should be supplied, followed by any mode specific arguments and a
-pitch set. Pitch sets can be read as arguments or from standard input;
-some modes require two pitch sets that must be supplied one per line
-on standard input.
+Routines for atonal music composition and analysis, plus other music
+theory or composition related tasks. Global options and a mode must be
+supplied, followed by any mode specific arguments. Most modes accept
+pitch sets, though some perform other tasks and thus expect various
+input formats. Pitch sets can be read as arguments or from standard
+input; some modes require two pitch sets that must be supplied one per
+line on standard input.
 
 The output will vary depending on the mode, and may include Cope tension
 numbers (average, min, max tension for the pitch set). Other programs
 should not be written to use this program, as the output may change. Use
 the underlying code or modules called by this program, as this program
-is mostly intended for interactive use.
+is intended for interactive use.
 
 =head1 OPTIONS
 
-This script currently supports the following global command line switches:
+This program currently supports the following global command line
+switches:
 
 =over 4
 
@@ -1077,13 +1081,18 @@ Uses flats instead of sharps in output (but only with B<--ly>). Specify
 B<--noflats> to disable flats, in the event you have an alias that sets
 B<--flats> by default. There is currently no B<--sharps> option, sorry.
 
+Doubleflats or doublesharps are not supported in the output, as they
+will be rendered to the underlying note (e.g. for C<Fx> the output
+would be C<G>). Doubleflats or doublesharps can be specified in the
+input, though.
+
 =item B<--help>
 
-Displays help and exits.
+Displays help and exits the program.
 
 =item B<--listmodes>
 
-Displays supported operation modes.
+Displays supported operation modes and exits the program.
 
 =item B<--ly>
 
@@ -1091,18 +1100,20 @@ Show lilypond note names instead of raw pitch numbers.
 
 =item B<--scaledegrees>
 
-Adjust the number of scale degrees (default: 12).
+Adjust the number of scale degrees (default: 12). May cause strange,
+untested results from various calculations, use with caution.
 
 =back
 
 =head1 MODES
 
-Most all modes accept a pitch set (list of raw pitch numbers (0..number
-of scale degrees) or lilypond note names (bis, c, des, etc.) either on
-the command line or via standard input, though there are exceptions.
+Most modes accept a pitch set. These comprise raw pitch numbers
+(integers) or lilypond note names (bis, c, des, etc.) specified either
+on the command line or via standard input, though some modes have other
+conventions or input they accept.
 
-The global B<--ly> and B<--flats> can be specified as options to modes
-that emit pitches. See also L<Music::AtonalUtil> for more documentation.
+Various global flags (listed above) can be specified as options to modes
+where they make sense.
 
 =over 4
 
@@ -1112,7 +1123,8 @@ Shows the B<prime_form> and B<interval_class_content>.
 
 =item B<circular_permute>
 
-See L<Music::AtonalUtil>.
+All permutations by rotation of the input pitch set. See
+L<Music::AtonalUtil> for details.
 
 =item B<combos> I<freq1> I<freq2> [I<freq3> ...]
 
@@ -1128,28 +1140,25 @@ L<https://en.wikipedia.org/wiki/Combination_tone>
 
 =item B<complement>
 
-See L<Music::AtonalUtil>.
+Emits those pitches not listed in the input. See L<Music::AtonalUtil>.
 
 =item B<equivs>
 
-Equivalents under transposition and inverse transposition. An optional
-axis of inversion (default: 0, though some forms use 6) can be supplied.
+Lists equivalents of the input pitch set under various transposition and
+inverse transposition operations.
 
 =item B<findall> I<[--exclude=p1[,p2]]> I<[--fn=nums]> I<[--root=pitch]> I<pitches>
 
 Find all Forte pitch sets in which the given pitches exist. Like
-B<findin>, except iterates over all Forte pitch sets instead of just
-the given one.
+B<findin>, except iterates over all Forte pitch sets instead of just a
+named pitch set.
 
-With I<--exclude>, omits results containing the listed pitches. With I<--
-fn>, limits the search to the mentioned forte number prefixes (the
+With I<--exclude>, omits results containing the listed pitches. With
+I<--fn>, limits the search to the mentioned forte number prefixes (the
 number of pitches in the set). With I<--root>, limits matches to those
 with the named root pitch.
 
   $ atonal-util findall --root=c --fn=4-5 c e g bes
-
-Tensions may be lower than expected if the root pitch creates an open
-position chord versus a closed position of that set.
 
 =item B<findin> I<[--exclude=p1[,p2]]> I<[--root=pitch]> I<--pitchset=base_set> I<pitches>
 
@@ -1161,20 +1170,17 @@ limits matches to those with the named root pitch.
 
   $ atonal-util findin --exclude=c,ees --pitchset=5-25 d fis a
 
-Tensions may be lower than expected if the root pitch creates an open
-position chord versus a closed position of that set.
+=item B<fnums> [ I<--tension=cope> ]
 
-=item B<fnums>
-
-Return a list of all Forte Numbers and corresponding pitch sets (and
-their B<interval_class_content>), plus average tension, min tension, and
-max tension via Music::Tension::Cope.
+Returns a list of all Forte Numbers and corresponding pitch sets (and
+their B<interval_class_content>). With the I<--tension> flag, also shows
+Cope tension values for the pitch sets.
 
 =item B<forte2pcs> I<forte_number>
 
-Given a Forte Number, return the corresponding pitch set.
+Given a Forte Number, returns the corresponding pitch set.
 
-=item B<freq2pitch> I<frequencies...|->
+=item B<freq2pitch> I<frequencies...>
 
 Converts the listed frequencies (in Hz) into the closest MIDI note
 numbers. Reads frequencies line-per-line from standard input if the only
@@ -1183,15 +1189,18 @@ number to a lilypond note name.
 
 =item B<interval_class_content>
 
-See L<Music::AtonalUtil>.
+See L<Music::AtonalUtil>, or
+https://en.wikipedia.org/wiki/Interval_vector
 
-=item B<intervals2pcs>
+=item B<intervals2pcs> I<--pitch=startpitch>
 
-See L<Music::AtonalUtil>.
+Converts a list of intervals to a pitch set. The default starting
+pitch is 0.
 
 =item B<invariance_matrix>
 
-See L<Music::AtonalUtil>.
+Invariance under Transpose(N)Inversion operation matrix. See
+L<Music::AtonalUtil>.
 
 =item B<invariants>
 
@@ -1199,11 +1208,11 @@ Returns list of B<transpose> or B<transpose_invert> operations that have
 invariant pitches with the supplied pitch set, along with which pitches
 have not varied.
 
-=item B<invert> I<[--axis=inversion_axis]>
+=item B<invert> I<--axis=inversion_axis>
 
-See L<Music::AtonalUtil>. Default axis is around 0.
+See L<Music::AtonalUtil>. Default axis is around pitch 0.
 
-=item B<ly2pitch> I<[--relative=note]> [-|notes...]
+=item B<ly2pitch> I<--relative=note> [-|notes...]
 
 Converts lilypond note names to pitch numbers, via absolute mode by
 default. The input unlike in other modes may be quoted to protect the
@@ -1213,19 +1222,20 @@ lilypond C<'> register change from shell quoting rules. Example usages:
   $ atonal-util ly2pitch "c d' e f, g"
   $ atonal-util ly2pitch --relative=a\' a c d b
 
-=item B<multiply>
+=item B<multiply> I<--factor=N>
 
-See L<Music::AtonalUtil>.
+Multiplies specified pitches by specified factor (C<1> by default).
 
 =item B<normal_form>
 
-See L<Music::AtonalUtil>.
+Returns the normal form (via the "packed from the right" method) of the
+given pitch set.
 
-=item B<notes2time> [ I<--ms> ] [ I<--tempo=bpm> ] [ I<--beats=b> ] notedurs
+=item B<notes2time> I<--ms> I<--tempo=bpm> I<--beats=b> notedurs
 
-Converts note durations (for example 4 for a quarter note or 4. for a
-dotted quarter note) to time, which is shown in a condensed form, unless
-I<--ms> is supplied, in which case the duration is shown in
+Converts note durations (for example C<4> for a quarter note or C<4.>
+for a dotted quarter note) to time, which is shown in a condensed form,
+unless I<--ms> is supplied, in which case the duration is shown in
 milliseconds.
 
 =item B<pcs2forte>
@@ -1234,19 +1244,20 @@ Given a pitch set, returns the corresponding Forte Number, if any.
 
 =item B<pcs2intervals>
 
-See L<Music::AtonalUtil>.
+Given a pitch set of at least two elements, returns the list of
+intervals between the pitches.
 
-=item B<pitch2freq> I<pitches...|->
+=item B<pitch2freq> I<pitches...>
 
-Converts pitches to a frequency (in Hz) using the standard MIDI note
+Converts pitches to frequencies (in Hz) using the standard MIDI note
 number conversion equation. Reads pitches line-by-line from standard
-input if only pitch given is C<->.
+input if the only pitch given is C<->.
 
 =item B<pitch2intervalclass> I<pitch>
 
-See L<Music::AtonalUtil>.
+Return the interval class a given pitch belongs to.
 
-=item B<pitch2ly> I<[--mode=relative|absolute]> I<pitches...|->
+=item B<pitch2ly> I<--mode=relative|absolute> I<pitches...>
 
 Converts pitches (integers) to lilypond note names. Reads pitches line-by-
 line from standard input if only pitch given is C<->. Use the I<--mode>
@@ -1254,12 +1265,12 @@ option to specify relative or absolute conversion.
 
 =item B<prime_form>
 
-See L<Music::AtonalUtil>.
+Returns the prime form of the given pitch set.
 
 =item B<recipe> I<--file=recipefile>
 
-Apply a series of named operations from a batch file to a pitch set,
-for example:
+Apply a series of named operations from a batch file to a given pitch
+set. One possibility for C<recipefile> contents might be:
 
   retrograde
   invert 6
@@ -1267,40 +1278,45 @@ for example:
 
 =item B<retrograde>
 
-See L<Music::AtonalUtil>.
+Reverses the given list of pitches.
 
-=item B<rotate> I<[--rotate=integer]>
+=item B<rotate> I<--rotate=integer>
 
-See L<Music::AtonalUtil>.
+Rotates the pitch set by the given integer (by default C<0> or no
+rotation). L<Music::AtonalUtil> also has a B<rotateby> method to rotate
+to a particular element that may be of use in composition.
 
 =item B<set_complex>
 
-See L<Music::AtonalUtil>.
+Computes the set complex of a pitch set (a table of the pitch set, pitch
+set inversion, and their combination).
 
-=item B<subsets> I<[--length=integer]>
+=item B<subsets> [ I<--length=integer> ]
 
 See L<Music::AtonalUtil>. The length, if supplied, must be a magnitude
 equal to or less than the number of pitches supplied, and probably also
-2 or higher.
-
-=item B<tcis>
-
-See L<Music::AtonalUtil>.
+two or higher.
 
 =item B<tcs>
 
-See L<Music::AtonalUtil>.
+Transposition common-tone structure. See L<Music::AtonalUtil>. Probably
+easier to use the B<invariants> mode to list the full results.
+
+=item B<tcis>
+
+As above method except with B<transpose_invert> instead of B<transpose>.
+Probably easier to use the B<invariants> mode to list the full results.
 
 =item B<tension> I<pitch_set>
 
 Returns the average, min, max, and tension values for all the tensions
 in the passed pitch set, from the first notes in the set up to the last.
-(Via Music::Tension::Cope.)
+Tensions calculated via L<Music::Tension::Cope>.
 
 =item B<transpose> I<--transpose=integer_or_note>
 
-See L<Music::AtonalUtil>. Transposes the supplied pitches by the
-specified integer (by default 0, or a no-op), or to the specified note.
+Transposes the supplied pitches by the specified integer (by default 0,
+or a no-op), or to the specified note.
 
   $ atonal-util transpose --transpose=4 --ly c e g
   e gis b
@@ -1308,17 +1324,19 @@ specified integer (by default 0, or a no-op), or to the specified note.
   e gis b
 
 Register aware transpositions are possible with the C<canonical> tool of
-the L<App::MusicTools> module, using the B<exact> mode and B<--transpose>
-option.
+the L<App::MusicTools> module, among many other nifty features (modal
+transpositions, etc).
 
-=item B<transpose_invert> I<--transpose=integer_or_note> I<[--axis=integer_or_note]>
+=item B<transpose_invert> I<--transpose=integer_or_note> [ I<--axis=integer_or_note> ]
 
-See L<Music::AtonalUtil>. Transposes supplied pitch set by the specified
+Inverts and then transposes the supplied pitch set by the specified
 integer, or to the specified note. Default axis for inversion is 0 (c).
 
 =item B<variances>
 
-Accepts two pitch sets, one per line, via standard input.
+Accepts two pitch sets, one per line, via standard input. Returns
+three lines consiting of the intersection, difference, and union of
+the given sets.
 
 =item B<whatscalesfit>
 
@@ -1329,7 +1347,9 @@ alterations.
 
 =item B<zrelation>
 
-Accepts two pitch sets, one per line, via standard input.
+Accepts two pitch sets, one per line, via standard input. Emits C<1>
+if the two sets share the same B<interval_class_content>, C<0> if
+they do not.
 
 =back
 
@@ -1367,7 +1387,7 @@ Jeremy Mates
 
 Copyright (C) 2012-2013 by Jeremy Mates
 
-This script is free software; you can redistribute it and/or modify it
+This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself, either Perl version 5.16 or, at
 your option, any later version of Perl 5 you may have available.
 

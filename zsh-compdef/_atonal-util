@@ -136,7 +136,10 @@ _atonalutil_findin() {
     '--root=[root pitch]:pitch:_values "pitches" $pitches' \
     '--pitchset=[base pitch set]:ps:_values "forte number" $forte_numbers'
 }
-_atonalutil_fnums() { }
+_atonalutil_fnums() {
+  _arguments -s \
+    '--tension=[tension flag]:tension:(cope)'
+}
 _atonalutil_forte2pcs() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
