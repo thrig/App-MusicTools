@@ -438,6 +438,35 @@ impossible note.
 
 =back
 
+=head1 EXAMPLES
+
+Fugue answers can readily be calculated with this program, for example
+to transpose to the key of the dominant (WTC II, Fugue 9 in E major).
+
+  $ canonical --rel=e modal --t=7 e1 fis2 a gis fis e4
+  b1 cis2 e dis cis b4
+
+This handles the need to raise the leading tone of the key of the
+Dominant automatically where A needs to raise to A# (WTC I, Fugue 9
+in E major).
+
+  $ canonical --rel=e\' modal --t=7 \
+    r8 e8 fis4 r16 b,16 cis dis e dis e fis g
+  r8 b8 cis4 r16 fis,16 gis ais b ais b cis d
+
+Or the need to raise both II and VII in the minor key (WTC I, Fugue 4 in
+C# minor).
+
+  $ canonical --rel=e\' modal --t=7 cis1 bis2 e dis1 cis4                    
+  gis1 g2 b ais1 gis4
+
+Or even complicated things with chromatic alterations (WTC I, Fugue 14
+in F# minor).
+
+  $ canonical --rel b modal --t=7 r4 fis gis a1 \
+    gis8 ais b4 b ais8 gis ais bis cis4. b8 a8 cis b a gis2 fis
+  r4 cis dis e1 dis8 f fis4 fis f8 dis f g gis4. fis8 e8 gis fis e dis2 cis
+
 =head1 FILES
 
 A ZSH completion script is available in the C<zsh-compdef/> directory of 
