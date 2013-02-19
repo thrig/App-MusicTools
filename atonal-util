@@ -697,7 +697,7 @@ sub notes2time {
   for my $notespec (@args) {
     if ( $notespec =~ m/(\d+)([.]+)?/ ) {
       my $dur = $beats / $1;
-      my $dots = length( $2 || 0 );
+      my $dots = defined $2 ? length $2 : 0;
       push @durations, 2 * $dur - ( $dur / 2**$dots );
     } else {
       die "unable to parse duration from '$notespec'\n";
