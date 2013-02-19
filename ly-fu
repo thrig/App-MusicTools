@@ -92,8 +92,7 @@ my $midi_fname  = $src_fname . $MIDI_SUFFIX;
 my $score_fname = $src_fname . $SCORE_SUFFIX;
 
 if ( !@ARGV or ( @ARGV == 1 and $ARGV[0] eq '-' ) ) {
-  chomp( @ARGV = <STDIN> );
-  s/^\s*%.*// for @ARGV;    # strip lilypond comments
+  @ARGV = <STDIN>;
 }
 
 my $pre_art  = '';
