@@ -54,8 +54,6 @@ my $tempo       = 130;
 #
 # MAIN
 
-print_help() unless @ARGV;
-
 if ( exists $ENV{'MIDI_EDITOR'} ) {
   @MIDI_PLAYER = map { s{(?<!\\)\\}{}g; $_ } split /(?<!\\)\s+/,
     $ENV{'MIDI_EDITOR'};
@@ -93,7 +91,7 @@ my ( $src_fh, $src_fname ) = tempfile(
 my $midi_fname  = $src_fname . $MIDI_SUFFIX;
 my $score_fname = $src_fname . $SCORE_SUFFIX;
 
-if ( @ARGV == 1 and $ARGV[0] eq '-' ) {
+if ( !@ARGV or ( @ARGV == 1 and $ARGV[0] eq '-' ) ) {
   chomp( @ARGV = <STDIN> );
   s/\s+%\s.+$// for @ARGV;    # strip lilypond comments
 }
