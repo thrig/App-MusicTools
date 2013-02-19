@@ -78,7 +78,7 @@ GetOptions(
   'sleep|S=s'      => \$sleep_kluge,
   'tempo|t=s'      => \$tempo,
   'verbose'        => \my $verbose,
-);
+) or print_help();
 
 $save_layout = 1 if $do_open;
 push @LILYPOND, '--pdf' if $save_layout;
