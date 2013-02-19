@@ -93,7 +93,7 @@ my $score_fname = $src_fname . $SCORE_SUFFIX;
 
 if ( !@ARGV or ( @ARGV == 1 and $ARGV[0] eq '-' ) ) {
   chomp( @ARGV = <STDIN> );
-  s/\s+%\s.+$// for @ARGV;    # strip lilypond comments
+  s/^\s*%.*// for @ARGV;    # strip lilypond comments
 }
 
 my $pre_art  = '';
