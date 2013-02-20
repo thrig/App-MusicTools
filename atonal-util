@@ -23,6 +23,10 @@ use Music::AtonalUtil   ();
 use Music::LilyPondUtil ();
 use Music::Scales qw/get_scale_nums/;
 use Music::Tempo qw/bpm_to_ms/;
+# NOTE this module is also providing the pitch2freq and freq2pitch
+# conversions (in combos, f2p, and p2f), which may need rejiggering if
+# Music::Scala gets written and different temperaments are involved, not
+# just different reference frequencies.
 use Music::Tension::Cope ();
 # untested with --tension
 #use Music::Tension::PlompLevelt ();
@@ -173,12 +177,14 @@ sub _fit_scale {
 }
 
 sub _init_tension {
-  my ($override) = @_;
+  my ( $override, $ref_freq ) = @_;
   $Flag_Tension = $override if defined $override;
 
   if ( defined $Flag_Tension ) {
     if ( $Flag_Tension eq 'cope' ) {
-      $Tension = Music::Tension::Cope->new;
+      $Tension =
+        Music::Tension::Cope->new(
+        defined $ref_freq ? ( reference_frequency => $ref_freq ) : () );
       # untested with --tension
       #   } elsif ( $Flag_Tension eq 'pl' ) {
       #     $Tension = Music::Tension::PlompLevelt->new;
@@ -245,8 +251,9 @@ sub combos {
   my $mode = 'absolute';
   GetOptionsFromArray(
     \@args, @Std_Opts,
-    'pitches'    => \my $Flag_Pitches,
-    'relative=s' => \my $relative
+    'concertpitch|cp=s' => \my $concert_pitch,
+    'pitches'           => \my $Flag_Pitches,
+    'relative=s'        => \my $relative
   ) or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
 
@@ -261,7 +268,10 @@ sub combos {
   }
 
   # for the parent class pitch/frequency conversion methods
-  _init_tension('cope');
+  $concert_pitch //= 440;
+  die 'concert pitch must be number'
+    unless looks_like_number $concert_pitch;
+  _init_tension( 'cope', $concert_pitch );
 
   my @freqs;
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
@@ -520,9 +530,18 @@ sub forte2pcs {
 
 sub freq2pitch {
   my (@args) = @_;
-  GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
+  my $mode = 'absolute';
+  GetOptionsFromArray(
+    \@args,
+    @Std_Opts,
+    'concertpitch|cp=s' => \my $concert_pitch,
+    'relative=s'        => \my $relative,
+  ) or print_help();
 
-  _init_tension('cope');
+  $concert_pitch //= 440;
+  die 'concert pitch must be number'
+    unless looks_like_number $concert_pitch;
+  _init_tension( 'cope', $concert_pitch );
 
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
     chomp( @args = readline STDIN );
@@ -737,15 +756,38 @@ sub pcs2intervals {
 
 sub pitch2freq {
   my (@args) = @_;
+  my $mode = 'absolute';
+  GetOptionsFromArray(
+    \@args,
+    'concertpitch|cp=s' => \my $concert_pitch,
+    'relative=s'        => \my $relative,
+  ) or print_help();
 
-  _init_tension('cope');
+  $concert_pitch //= 440;
+  die 'concert pitch must be number'
+    unless looks_like_number $concert_pitch;
+  _init_tension( 'cope', $concert_pitch );
+
+  $Lyu->ignore_register(0);
+  $Lyu->keep_state(1);
+  $Lyu->sticky_state(1);
+  if ($relative) {
+    $Lyu->mode('relative');
+    $Lyu->prev_note($relative);
+  } else {
+    $Lyu->mode('absolute');
+  }
 
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
     chomp( @args = readline STDIN );
   }
 
-  for my $pitch ( map int, grep looks_like_number $_,
-    map { split ' ', $_ } @args ) {
+  # If pitch must int() it, otherwise feed to lilypond for conversion so
+  # do not first need to call ly2pitch on the input.
+  for my $pitch (
+    map { looks_like_number $_ ? int $_ : $Lyu->notes2pitches($_) }
+    map { split ' ', $_ } @args
+    ) {
     die "pitch '$pitch' out of range\n" if $pitch < 0 or $pitch > 108;
     printf "%d\t%.2f\n", $pitch, $Tension->pitch2freq($pitch);
   }
@@ -1138,6 +1180,11 @@ tuning from the actual combination tone is also shown.
 
 L<https://en.wikipedia.org/wiki/Combination_tone>
 
+This mode also accepts the I<--concertpitch> or I<--cp> argument to
+specify a different reference pitch than 440 Hz. This will affect both
+notes input (different frequencies) and output (how error amounts for
+how far the resulting combination tone is from the nearest pitch).
+
 =item B<complement>
 
 Emits those pitches not listed in the input. See L<Music::AtonalUtil>.
@@ -1186,6 +1233,9 @@ Converts the listed frequencies (in Hz) into the closest MIDI note
 numbers. Reads frequencies line-per-line from standard input if the only
 frequency given is a C<->. With I<--ly> also converts the MIDI note
 number to a lilypond note name.
+
+This mode also accepts the I<--concertpitch> or I<--cp> argument to
+specify a different reference pitch than 440 Hz.
 
 =item B<interval_class_content>
 
@@ -1250,8 +1300,11 @@ intervals between the pitches.
 =item B<pitch2freq> I<pitches...>
 
 Converts pitches to frequencies (in Hz) using the standard MIDI note
-number conversion equation. Reads pitches line-by-line from standard
-input if the only pitch given is C<->.
+number conversion equation. Reads pitches (or lilypond notes) line-by-
+line from standard input if the only pitch given is C<->.
+
+This mode also accepts the I<--concertpitch> or I<--cp> argument to
+specify a different reference pitch than 440 Hz.
 
 =item B<pitch2intervalclass> I<pitch>
 
