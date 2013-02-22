@@ -19,6 +19,7 @@ https://github.com/thrig/Music-LilyPondUtil.git
 https://github.com/thrig/Music-Tension.git
 https://github.com/thrig/Music-AtonalUtil.git
 https://github.com/thrig/Music-Canon.git
+https://github.com/thrig/Music-Scala.git
 https://github.com/thrig/App-MusicTools.git
 EOR
 
@@ -32,5 +33,6 @@ Music-LilyPondUtil
 Music-Tension
 Music-AtonalUtil
 Music-Canon
+Music-Scala
 App-MusicTools
 EOD

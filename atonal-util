@@ -21,12 +21,9 @@ use List::Util qw/sum/;
 use List::MoreUtils qw/all any/;
 use Music::AtonalUtil   ();
 use Music::LilyPondUtil ();
+use Music::Scala        ();
 use Music::Scales qw/get_scale_nums/;
 use Music::Tempo qw/bpm_to_ms/;
-# NOTE this module is also providing the pitch2freq and freq2pitch
-# conversions (in combos, f2p, and p2f), which may need rejiggering if
-# Music::Scala gets written and different temperaments are involved, not
-# just different reference frequencies.
 use Music::Tension::Cope ();
 # untested with --tension
 #use Music::Tension::PlompLevelt ();
@@ -253,7 +250,9 @@ sub combos {
     \@args, @Std_Opts,
     'concertpitch|cp=s' => \my $concert_pitch,
     'pitches'           => \my $Flag_Pitches,
-    'relative=s'        => \my $relative
+    'relative=s'        => \my $relative,
+    # TODO
+    #   'scala=s'           => \my $scala_file,
   ) or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
 
@@ -267,11 +266,20 @@ sub combos {
     $Lyu->mode('absolute');
   }
 
-  # for the parent class pitch/frequency conversion methods
   $concert_pitch //= 440;
-  die 'concert pitch must be number'
-    unless looks_like_number $concert_pitch;
-  _init_tension( 'cope', $concert_pitch );
+  die 'concert pitch must be number (Hz)'
+    if !looks_like_number $concert_pitch
+    or $concert_pitch <= 0;
+  my $scala = Music::Scala->new( concertpitch => $concert_pitch );
+  # TODO implement this - use scala instead of MIDI equal temperament
+  # if (defined $scala_file) {
+  #   $scala->read_scala($scala_file);
+  #   my @ratios = $scala->get_ratios;
+  #   if (@ratios != 12 or $ratios[-1] != 2) {
+  #     # XXX until figure out .kbm file support?
+  #     die "scala scales must be 12-tone and octave bounded\n";
+  #   }
+  # }
 
   my @freqs;
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
@@ -288,9 +296,9 @@ sub combos {
     die "Usage: $0 combos [--pitches [--relative=note]] f1 f2 [f3...]\n";
   }
 
-  # turn on pitch mode if first note look more a note than a number
+  # turn on pitch mode if first note looks more a note than a number
   if ( $Flag_Pitches or $freqs[0] =~ m/[a-g]/ ) {
-    @freqs = map $Tension->pitch2freq($_), $Lyu->notes2pitches(@freqs);
+    @freqs = map $scala->pitch2freq($_), $Lyu->notes2pitches(@freqs);
   }
 
   for my $i ( 1 .. $#freqs ) {
@@ -306,10 +314,10 @@ sub combos {
     my $minus_delta = 0;
     my $errstr      = '';
     eval {
-      $plus_pitch  = $Tension->freq2pitch($plus);
-      $minus_pitch = $Tension->freq2pitch($minus);
-      $plus_delta  = $Tension->pitch2freq($plus_pitch) - $plus;
-      $minus_delta = $Tension->pitch2freq($minus_pitch) - $minus;
+      $plus_pitch  = $scala->freq2pitch($plus);
+      $minus_pitch = $scala->freq2pitch($minus);
+      $plus_delta  = $scala->pitch2freq($plus_pitch) - $plus;
+      $minus_delta = $scala->pitch2freq($minus_pitch) - $minus;
     };
     if ($@) {
       $errstr = "\t/!\\ pitch out of bounds";
@@ -541,7 +549,7 @@ sub freq2pitch {
   $concert_pitch //= 440;
   die 'concert pitch must be number'
     unless looks_like_number $concert_pitch;
-  _init_tension( 'cope', $concert_pitch );
+  my $scala = Music::Scala->new( concertpitch => $concert_pitch );
 
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
     chomp( @args = readline STDIN );
@@ -555,7 +563,7 @@ sub freq2pitch {
   for my $freq ( grep looks_like_number $_, map { split ' ', $_ } @args ) {
     die "frequency '$freq' out of range" if $freq < 8 or $freq > 4200;
 
-    my $p = $Tension->freq2pitch($freq);
+    my $p = $scala->freq2pitch($freq);
     $p = $Lyu->p2ly($p) if $Flag_Lyout;
     printf "%.2f\t%s\n", $freq, $p;
   }
@@ -766,7 +774,7 @@ sub pitch2freq {
   $concert_pitch //= 440;
   die 'concert pitch must be number'
     unless looks_like_number $concert_pitch;
-  _init_tension( 'cope', $concert_pitch );
+  my $scala = Music::Scala->new( concertpitch => $concert_pitch );
 
   $Lyu->ignore_register(0);
   $Lyu->keep_state(1);
@@ -789,7 +797,7 @@ sub pitch2freq {
     map { split ' ', $_ } @args
     ) {
     die "pitch '$pitch' out of range\n" if $pitch < 0 or $pitch > 108;
-    printf "%d\t%.2f\n", $pitch, $Tension->pitch2freq($pitch);
+    printf "%d\t%.2f\n", $pitch, $scala->pitch2freq($pitch);
   }
 }
 
