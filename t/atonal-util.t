@@ -186,16 +186,16 @@ my ( $ivars, $ivars_serr ) =
   run_cmd_with_stderr(qw{./atonal-util invariants 3-9});
 $deeply->(
   $ivars,
-  [ 'T(0)   [ 0,2,7    ] invariants are: [ 0,2,7    ] 3-9',
-    'T(2)   [ 2,4,9    ] invariants are: [ 2        ]',
-    'T(5)   [ 5,7,0    ] invariants are: [ 7,0      ]',
-    'T(7)   [ 7,9,2    ] invariants are: [ 7,2      ]',
-    'T(10)  [ 10,0,5   ] invariants are: [ 0        ]',
-    'Ti(0)  [ 0,10,5   ] invariants are: [ 0        ]',
-    'Ti(2)  [ 2,0,7    ] invariants are: [ 2,0,7    ] 3-9',
-    'Ti(4)  [ 4,2,9    ] invariants are: [ 2        ]',
-    'Ti(7)  [ 7,5,0    ] invariants are: [ 7,0      ]',
-    'Ti(9)  [ 9,7,2    ] invariants are: [ 7,2      ]',
+  [ 'T(0)   [ 0,2,7    ] ivars [ 0,2,7    ] 3-9',
+    'T(2)   [ 2,4,9    ] ivars [ 2        ]',
+    'T(5)   [ 5,7,0    ] ivars [ 7,0      ]',
+    'T(7)   [ 7,9,2    ] ivars [ 7,2      ]',
+    'T(10)  [ 10,0,5   ] ivars [ 0        ]',
+    'Ti(0)  [ 0,10,5   ] ivars [ 0        ]',
+    'Ti(2)  [ 2,0,7    ] ivars [ 2,0,7    ] 3-9',
+    'Ti(4)  [ 4,2,9    ] ivars [ 2        ]',
+    'Ti(7)  [ 7,5,0    ] ivars [ 7,0      ]',
+    'Ti(9)  [ 9,7,2    ] ivars [ 7,2      ]',
   ],
   'invariences'
 );
