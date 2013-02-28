@@ -173,6 +173,27 @@ sub _fit_scale {
   }
 }
 
+sub _init_scala {
+  my ( $cf, $cp, $file ) = @_;
+  $cf //= 440;    # A440
+  $cp //= 69;
+
+  my $scala = Music::Scala->new(
+    concertfreq  => $cf,
+    concertpitch => $cp,
+  );
+  if ( defined $file ) {
+    $scala->read_scala($file);
+    my @ratios = $scala->get_ratios;
+    if ( @ratios != 12 or $ratios[-1] != 2 ) {
+      # XXX until figure out .kbm file support?
+      die "scala scales must be 12-tone and octave bounded\n";
+    }
+  }
+
+  return $scala;
+}
+
 sub _init_tension {
   my ( $override, $ref_freq ) = @_;
   $Flag_Tension = $override if defined $override;
@@ -248,11 +269,11 @@ sub combos {
   my $mode = 'absolute';
   GetOptionsFromArray(
     \@args, @Std_Opts,
+    'concertfreq|cf=s'  => \my $concert_freq,
     'concertpitch|cp=s' => \my $concert_pitch,
     'pitches'           => \my $Flag_Pitches,
     'relative=s'        => \my $relative,
-    # TODO
-    #   'scala=s'           => \my $scala_file,
+    'scala=s'           => \my $scala_file,
   ) or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
 
@@ -266,20 +287,7 @@ sub combos {
     $Lyu->mode('absolute');
   }
 
-  $concert_pitch //= 440;
-  die 'concert pitch must be number (Hz)'
-    if !looks_like_number $concert_pitch
-    or $concert_pitch <= 0;
-  my $scala = Music::Scala->new( concertpitch => $concert_pitch );
-  # TODO implement this - use scala instead of MIDI equal temperament
-  # if (defined $scala_file) {
-  #   $scala->read_scala($scala_file);
-  #   my @ratios = $scala->get_ratios;
-  #   if (@ratios != 12 or $ratios[-1] != 2) {
-  #     # XXX until figure out .kbm file support?
-  #     die "scala scales must be 12-tone and octave bounded\n";
-  #   }
-  # }
+  my $scala = _init_scala( $concert_freq, $concert_pitch, $scala_file );
 
   my @freqs;
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
@@ -314,6 +322,12 @@ sub combos {
     my $minus_delta = 0;
     my $errstr      = '';
     eval {
+      # XXX if instead have $scala_file, then use $scala->get_concertpitch
+      # hmm.. how do we know freq2pitch mapping? do not have appropriate code
+      # for the scala input side of things - or get pitch using this method,
+      # then search around in that space by interval to see what of the scala
+      # intervals get you the closest, use that as the frequency to compare
+      # with the combo tone? - but only that logic if have a scala_file defined
       $plus_pitch  = $scala->freq2pitch($plus);
       $minus_pitch = $scala->freq2pitch($minus);
       $plus_delta  = $scala->pitch2freq($plus_pitch) - $plus;
@@ -542,14 +556,13 @@ sub freq2pitch {
   GetOptionsFromArray(
     \@args,
     @Std_Opts,
+    'concertfreq|cf=s'  => \my $concert_freq,
     'concertpitch|cp=s' => \my $concert_pitch,
     'relative=s'        => \my $relative,
+    'scala=s'           => \my $scala_file,
   ) or print_help();
 
-  $concert_pitch //= 440;
-  die 'concert pitch must be number'
-    unless looks_like_number $concert_pitch;
-  my $scala = Music::Scala->new( concertpitch => $concert_pitch );
+  my $scala = _init_scala( $concert_freq, $concert_pitch, $scala_file );
 
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
     chomp( @args = readline STDIN );
@@ -611,13 +624,13 @@ sub invariants {
   @seen{@$ps} = ();
 
   my $icc = scalar $Atu->interval_class_content($ps);
-  print '[',
+  warn '[',
     join( ',', map { $Flag_Lyout ? $Lyu->p2ly($_) : $_ } @$ps ),
     '] icc ', join( '', @$icc ), "\n";
 
   my $ps_len = 2 + @$ps * ( $Flag_Lyout ? 3 : 2 );
 
-  for my $t ( 1 .. $Atu->scale_degrees - 1 ) {
+  for my $t ( 0 .. $Atu->scale_degrees - 1 ) {
     my $tps = $Atu->transpose( $ps, $t );
     my @t_invary;
     for my $p (@$tps) {
@@ -628,11 +641,10 @@ sub invariants {
         join( ',', map { $Flag_Lyout ? $Lyu->p2ly($_) : $_ } @$tps ),
         'invariants are:',
         join( ',', map { $Flag_Lyout ? $Lyu->p2ly($_) : $_ } @t_invary );
-
     }
   }
 
-  for my $t ( 1 .. $Atu->scale_degrees - 1 ) {
+  for my $t ( 0 .. $Atu->scale_degrees - 1 ) {
     my $ips = $Atu->transpose_invert( $ps, $t );
     my @i_invary;
     for my $p (@$ips) {
@@ -767,14 +779,13 @@ sub pitch2freq {
   my $mode = 'absolute';
   GetOptionsFromArray(
     \@args,
+    'concertfreq|cf=s'  => \my $concert_freq,
     'concertpitch|cp=s' => \my $concert_pitch,
     'relative=s'        => \my $relative,
+    'scala=s'           => \my $scala_file,
   ) or print_help();
 
-  $concert_pitch //= 440;
-  die 'concert pitch must be number'
-    unless looks_like_number $concert_pitch;
-  my $scala = Music::Scala->new( concertpitch => $concert_pitch );
+  my $scala = _init_scala( $concert_freq, $concert_pitch, $scala_file );
 
   $Lyu->ignore_register(0);
   $Lyu->keep_state(1);
@@ -1188,7 +1199,7 @@ tuning from the actual combination tone is also shown.
 
 L<https://en.wikipedia.org/wiki/Combination_tone>
 
-This mode also accepts the I<--concertpitch> or I<--cp> argument to
+This mode also accepts the I<--concertfreq> or I<--cf> argument to
 specify a different reference pitch than 440 Hz. This will affect both
 notes input (different frequencies) and output (how error amounts for
 how far the resulting combination tone is from the nearest pitch).
@@ -1242,7 +1253,7 @@ numbers. Reads frequencies line-per-line from standard input if the only
 frequency given is a C<->. With I<--ly> also converts the MIDI note
 number to a lilypond note name.
 
-This mode also accepts the I<--concertpitch> or I<--cp> argument to
+This mode also accepts the I<--concertfreq> or I<--cf> argument to
 specify a different reference pitch than 440 Hz.
 
 =item B<interval_class_content>
@@ -1311,7 +1322,7 @@ Converts pitches to frequencies (in Hz) using the standard MIDI note
 number conversion equation. Reads pitches (or lilypond notes) line-by-
 line from standard input if the only pitch given is C<->.
 
-This mode also accepts the I<--concertpitch> or I<--cp> argument to
+This mode also accepts the I<--concertfreq> or I<--cf> argument to
 specify a different reference pitch than 440 Hz.
 
 =item B<pitch2intervalclass> I<pitch>

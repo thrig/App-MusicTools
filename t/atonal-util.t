@@ -6,7 +6,10 @@
 use warnings;
 use strict;
 
-use Test::More;
+use Test::More;    # plan is down at bottom
+
+eval 'use Test::Differences';    # display convenience
+my $deeply = $@ ? \&is_deeply : \&eq_or_diff;
 
 use lib 't';
 use Util;
@@ -65,7 +68,7 @@ my @tests = (
   { cmd      => [qw{./atonal-util freq2pitch 440}],
     expected => ["440.00\t69"],
   },
-  { cmd      => [qw{./atonal-util freq2pitch --cp=422.5 440}],
+  { cmd      => [qw{./atonal-util freq2pitch --cf=422.5 440}],
     expected => ["440.00\t70"],
   },
   { cmd      => [qw{./atonal-util interval_class_content c fis b}],
@@ -76,19 +79,6 @@ my @tests = (
   },
   { cmd      => [qw{./atonal-util invariance_matrix 0 2 4}],
     expected => [ '0,2,4', '2,4,6', '4,6,8' ],
-  },
-  { cmd      => [qw{./atonal-util invariants 3-9}],
-    expected => [
-      '[0,2,7] icc 010020',
-      'T(2)   [ 2,4,9    ] invariants are: [ 2        ]',
-      'T(5)   [ 5,7,0    ] invariants are: [ 7,0      ]',
-      'T(7)   [ 7,9,2    ] invariants are: [ 7,2      ]',
-      'T(10)  [ 10,0,5   ] invariants are: [ 0        ]',
-      'Ti(2)  [ 2,0,7    ] invariants are: [ 2,0,7    ]',
-      'Ti(4)  [ 4,2,9    ] invariants are: [ 2        ]',
-      'Ti(7)  [ 7,5,0    ] invariants are: [ 7,0      ]',
-      'Ti(9)  [ 9,7,2    ] invariants are: [ 7,2      ]',
-    ],
   },
   { cmd      => [qw{./atonal-util invert 1 2 3}],
     expected => ['11,10,9'],
@@ -117,7 +107,7 @@ my @tests = (
   { cmd      => [qw{./atonal-util pitch2freq 60}],
     expected => ["60\t261.63"],
   },
-  { cmd      => [qw{./atonal-util pitch2freq --cp=422.5 a'}],
+  { cmd      => [qw{./atonal-util pitch2freq --cf=422.5 a'}],
     expected => ["69\t422.50"],
   },
   { cmd      => [qw{./atonal-util pitch2intervalclass 4}],
@@ -176,14 +166,10 @@ my @tests = (
   },
 );
 
-# Util.pm has a was-something-on-stderr test in addition to the one
-# below, so times two
-plan tests => 7 + @tests * 2;
-
 for my $test (@tests) {
   my @output = run_util( @{ $test->{cmd} } );
   s/\s+$// for @output;
-  is_deeply( \@output, $test->{expected}, "@{$test->{cmd}}" );
+  $deeply->( \@output, $test->{expected}, "@{$test->{cmd}}" );
 }
 
 # Custom tests for things that do not fit the above model well
@@ -196,11 +182,33 @@ is( scalar @fnums, 208, 'forte numbers count' );
 my ( $sout, $serr ) = run_cmd_with_stderr(qw{./atonal-util --help});
 ok( $serr->[0] =~ m/^Usage/, 'help emits to stderr' );
 
+my ( $ivars, $ivars_serr ) =
+  run_cmd_with_stderr(qw{./atonal-util invariants 3-9});
+$deeply->(
+  $ivars,
+  [ 'T(0)   [ 0,2,7    ] invariants are: [ 0,2,7    ]',
+    'T(2)   [ 2,4,9    ] invariants are: [ 2        ]',
+    'T(5)   [ 5,7,0    ] invariants are: [ 7,0      ]',
+    'T(7)   [ 7,9,2    ] invariants are: [ 7,2      ]',
+    'T(10)  [ 10,0,5   ] invariants are: [ 0        ]',
+    'Ti(0)  [ 0,10,5   ] invariants are: [ 0        ]',
+    'Ti(2)  [ 2,0,7    ] invariants are: [ 2,0,7    ]',
+    'Ti(4)  [ 4,2,9    ] invariants are: [ 2        ]',
+    'Ti(7)  [ 7,5,0    ] invariants are: [ 7,0      ]',
+    'Ti(9)  [ 9,7,2    ] invariants are: [ 7,2      ]',
+  ],
+  'invariences'
+);
+$deeply->( $ivars_serr, ['[0,2,7] icc 010020'], 'invarients stderr' );
+
 my @vout = pipe_into_cmd( 't/variances', qw{./atonal-util variances} );
-is_deeply( \@vout, [ '0,1,2,3', '4,5', '0,1,2,3,4,5' ], 'variances' );
+$deeply->( \@vout, [ '0,1,2,3', '4,5', '0,1,2,3,4,5' ], 'variances' );
 
 my @zrouty = pipe_into_cmd( 't/zrelation-yes', qw{./atonal-util zrelation} );
 is( $zrouty[0], 1, 'zrelation yes' );
 
 my @zroutn = pipe_into_cmd( 't/zrelation-no', qw{./atonal-util zrelation} );
 is( $zroutn[0], 0, 'zrelation no' );
+
+# Util.pm has a was-something-on-stderr test, so times two
+plan tests => 9 + @tests * 2;

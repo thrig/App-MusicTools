@@ -106,12 +106,14 @@ _atonalutil_complement() {
 }
 _atonalutil_combos() {
   _arguments -s \
-    {--concertpitch=,--cp=}'[concert pitch]:frequency:(409 415 422.5 440)' \
+    {--concertfreq=,--cf=}'[concert frequency]:frequency:(409 415 422.5 440)' \
+    {--concertpitch=,--cp=}'[concert pitch]:pitch:(69)' \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]' \
     '--pitches[input pitches instead of frequencies]' \
-    '--relative=[relative starting pitch]:pitch:_values "pitches" $pitches'
+    '--relative=[relative starting pitch]:pitch:_values "pitches" $pitches' \
+    '--scala=[scala file]:file:_files'
 }
 _atonalutil_equivs() {
   _arguments -s \
@@ -151,10 +153,12 @@ _atonalutil_forte2pcs() {
 }
 _atonalutil_freq2pitch() {
   _arguments -s \
-    {--concertpitch=,--cp=}'[concert pitch]:frequency:(409 415 422.5 440)' \
+    {--concertfreq=,--cf=}'[concert frequency]:frequency:(409 415 422.5 440)' \
+    {--concertpitch=,--cp=}'[concert pitch]:pitch:(69)' \
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
-    '--ly[emit notes not pitch numbers]'
+    '--ly[emit notes not pitch numbers]' \
+    '--scala=[scala file]:file:_files'
 }
 _atonalutil_interval_class_content() { }
 _atonalutil_intervals2pcs() {
@@ -214,8 +218,10 @@ _atonalutil_pcs2intervals() {
 }
 _atonalutil_pitch2freq() {
   _arguments -s \
-    {--concertpitch=,--cp=}'[concert pitch]:frequency:(409 415 422.5 440)' \
-    '--relative=[relative starting pitch]:pitch:_values "pitches" $pitches'
+    {--concertfreq=,--cf=}'[concert frequency]:frequency:(409 415 422.5 440)' \
+    {--concertpitch=,--cp=}'[concert pitch]:pitch:(69)' \
+    '--relative=[relative starting pitch]:pitch:_values "pitches" $pitches' \
+    '--scala=[scala file]:file:_files'
 }
 _atonalutil_pitch2intervalclass() {
   _arguments -s \
