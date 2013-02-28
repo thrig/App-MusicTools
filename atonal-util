@@ -637,10 +637,13 @@ sub invariants {
       push @t_invary, $p if exists $seen{$p};
     }
     if (@t_invary) {
-      printf "%-6s [ %-${ps_len}s ] %s [ %-${ps_len}s ]\n", "T($t)",
+      my $fn = $Atu->pcs2forte( \@t_invary );
+      printf "%-6s [ %-${ps_len}s ] %s [ %-${ps_len}s ]", "T($t)",
         join( ',', map { $Flag_Lyout ? $Lyu->p2ly($_) : $_ } @$tps ),
         'invariants are:',
         join( ',', map { $Flag_Lyout ? $Lyu->p2ly($_) : $_ } @t_invary );
+      print ' ', $fn if defined $fn;
+      print "\n";
     }
   }
 
@@ -651,10 +654,13 @@ sub invariants {
       push @i_invary, $p if exists $seen{$p};
     }
     if (@i_invary) {
-      printf "%-6s [ %-${ps_len}s ] %s [ %-${ps_len}s ]\n", "Ti($t)",
+      my $fn = $Atu->pcs2forte( \@i_invary );
+      printf "%-6s [ %-${ps_len}s ] %s [ %-${ps_len}s ]", "Ti($t)",
         join( ',', map { $Flag_Lyout ? $Lyu->p2ly($_) : $_ } @$ips ),
         'invariants are:',
         join( ',', map { $Flag_Lyout ? $Lyu->p2ly($_) : $_ } @i_invary );
+      print ' ', $fn if defined $fn;
+      print "\n";
     }
   }
 }
