@@ -75,7 +75,7 @@ my @tests = (
     expected => ['100011'],
   },
   { cmd      => [qw{./atonal-util intervals2pcs --pitch=2 3 4 7}],
-    expected => ['2,5,9,16'],
+    expected => ['2,5,9,4'],
   },
   { cmd      => [qw{./atonal-util invariance_matrix 0 2 4}],
     expected => [ '0,2,4', '2,4,6', '4,6,8' ],

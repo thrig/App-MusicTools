@@ -109,7 +109,7 @@ for my $vov_spec (@ARGV) {
       # pitch to those of the overlying mode, as otherwise III/ii
       # assuming major will use pitches not present in the underlying
       # major scale.
-      $cur_intervals = $atu->rotate( $base_intervals, -1 * $prev_root_sd );
+      $cur_intervals = $atu->rotate( -1 * $prev_root_sd, $base_intervals );
     }
     my $sds = build_triad_degrees( $root_sd, $factor );
     $pset = sd2ps( $sds, $alterations, $cur_intervals, $sd_transpose );
@@ -119,7 +119,7 @@ for my $vov_spec (@ARGV) {
     $invert_by       = $inv;
   }
 
-  $pset = $atu->rotate( $pset, -1 * $invert_by ) if $invert_by;
+  $pset = $atu->rotate( -1 * $invert_by, $pset ) if $invert_by;
 
   if ($Transpose) {
     for my $p (@$pset) {

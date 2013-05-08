@@ -37,7 +37,8 @@ SKIP: {
 
   # Default output should be a temp file that with --layout should not
   # be unlinked automatically and with --silent should not be played.
-  diag "NOTE ly-fu will fail if lilypond is too old";
+  diag
+    "NOTE ly-fu will fail if lilypond is too old (but only if lilypond installed)";
   my @output = run_util(qw{./ly-fu --layout --silent c});
   ok( -f $output[0], 'check that temp file generated' );
 }

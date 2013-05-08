@@ -100,7 +100,7 @@ GetOptionsFromArray(
   'listmodes'      => sub { print "$_\n" for sort keys %modes; exit 0 },
   'scaledegrees=s' => \my $scale_degrees,
 ) or print_help();
-$scale_degrees //= Music::AtonalUtil->new->scale_degrees();
+$scale_degrees //= 12;
 my $mode = shift;
 
 print_help() if !defined $mode or !exists $modes{$mode};
@@ -394,10 +394,11 @@ sub equivs {
   my $pset = args2pitchset(@args);
 
   for my $i ( 0 .. $Atu->scale_degrees - 1 ) {
-    my $set = $Atu->normal_form( $Atu->transpose( $pset, $i ) );
+    my $set = ( $Atu->normal_form( $Atu->transpose( $i, $pset ) ) )[0];
     if ( !$seen{"@$set"}++ ) {
       push @transpose, $set;
-      my $iset = $Atu->normal_form( $Atu->transpose_invert( $pset, $i ) );
+      my $iset =
+        ( $Atu->normal_form( $Atu->transpose_invert( $i, 0, $pset ) ) )[0];
       push @transpose_invert, $iset if !$seen{"@$iset"}++;
     }
   }
@@ -474,9 +475,9 @@ sub _findps {
 
 TRANS: for my $i ( 0 .. $Atu->scale_degrees - 1 ) {
     my %tps;
-    @tps{ @{ $Atu->transpose( $ps_base, $i ) } } = ();
+    @tps{ @{ $Atu->transpose( $i, $ps_base ) } } = ();
     if ( all { exists $tps{$_} } @$desired ) {
-      my @pitches = @{ $Atu->transpose( $ps_base, $i ) };
+      my @pitches = @{ $Atu->transpose( $i, $ps_base ) };
       next if defined $root_pitch and $pitches[0] != $root_pitch;
       if (%$excludes) {
         for my $p (@pitches) {
@@ -499,9 +500,9 @@ TRANS: for my $i ( 0 .. $Atu->scale_degrees - 1 ) {
 
 TRANSINV: for my $i ( 0 .. $Atu->scale_degrees - 1 ) {
     my %ips;
-    @ips{ @{ $Atu->transpose_invert( $ps_base, $i ) } } = ();
+    @ips{ @{ $Atu->transpose_invert( $i, 0, $ps_base ) } } = ();
     if ( all { exists $ips{$_} } @$desired ) {
-      my @pitches = @{ $Atu->transpose_invert( $ps_base, $i ) };
+      my @pitches = @{ $Atu->transpose_invert( $i, 0, $ps_base ) };
       next if defined $root_pitch and $pitches[0] != $root_pitch;
       if (%$excludes) {
         for my $p (@pitches) {
@@ -600,7 +601,7 @@ sub intervals2pcs {
 
   $Lyu->ignore_register(0);
 
-  emit_pitch_set( $Atu->intervals2pcs( args2pitchset(@args), $start_pitch ),
+  emit_pitch_set( $Atu->intervals2pcs( $start_pitch, args2pitchset(@args) ),
     rs => $Flag_Record_Sep );
 }
 
@@ -631,7 +632,7 @@ sub invariants {
   my $ps_len = 2 + @$ps * ( $Flag_Lyout ? 3 : 2 );
 
   for my $t ( 0 .. $Atu->scale_degrees - 1 ) {
-    my $tps = $Atu->transpose( $ps, $t );
+    my $tps = $Atu->transpose( $t, $ps );
     my @t_invary;
     for my $p (@$tps) {
       push @t_invary, $p if exists $seen{$p};
@@ -648,7 +649,7 @@ sub invariants {
   }
 
   for my $t ( 0 .. $Atu->scale_degrees - 1 ) {
-    my $ips = $Atu->transpose_invert( $ps, $t );
+    my $ips = $Atu->transpose_invert( $t, 0, $ps );
     my @i_invary;
     for my $p (@$ips) {
       push @i_invary, $p if exists $seen{$p};
@@ -671,7 +672,7 @@ sub invert {
     or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
   $axis = defined $axis ? $Lyu->notes2pitches($axis) : 0;
-  emit_pitch_set( $Atu->invert( args2pitchset(@args), $axis ),
+  emit_pitch_set( $Atu->invert( $axis, args2pitchset(@args) ),
     rs => $Flag_Record_Sep );
 }
 
@@ -716,14 +717,14 @@ sub multiply {
   $Lyu->chrome('flats') if $Flag_Flat;
   $factor //= 1;
   die "factor must be number\n" unless looks_like_number $factor;
-  emit_pitch_set( $Atu->multiply( args2pitchset(@args), $factor ) );
+  emit_pitch_set( $Atu->multiply( $factor, args2pitchset(@args) ) );
 }
 
 sub normal_form {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
-  emit_pitch_set( $Atu->normal_form( args2pitchset(@args) ),
+  emit_pitch_set( ( $Atu->normal_form( args2pitchset(@args) ) )[0],
     rs => $Flag_Record_Sep );
 }
 
@@ -925,7 +926,7 @@ sub recipe {
       next if !$method or $method =~ m/^[\s#]/;
       chomp @margs;
       die "not a ", ref $Atu, " method" unless $Atu->can($method);
-      $wps = $Atu->$method( $wps, @margs );
+      $wps = $Atu->$method( @margs, $wps );
     }
   };
   if ($@) {
@@ -950,7 +951,7 @@ sub rotate {
   $Lyu->chrome('flats') if $Flag_Flat;
   $r //= 0;
   die "rotate must be number\n" unless looks_like_number $r;
-  emit_pitch_set( $Atu->rotate( args2pitchset(@args), $r ),
+  emit_pitch_set( $Atu->rotate( $r, args2pitchset(@args) ),
     rs => $Flag_Record_Sep );
 }
 
@@ -967,7 +968,8 @@ sub subsets {
   GetOptionsFromArray( \@args, @Std_Opts, 'length|len=i' => \my $l, )
     or print_help();
   $Lyu->chrome('flats') if $Flag_Flat;
-  emit_pitch_set( $Atu->subsets( args2pitchset(@args), $l ),
+  $l //= -1;
+  emit_pitch_set( $Atu->subsets( $l, args2pitchset(@args) ),
     rs => $Flag_Record_Sep );
 }
 
@@ -1025,7 +1027,7 @@ sub transpose {
   if ( !looks_like_number($t) ) {
     $t = $Lyu->notes2pitches($t) - $pset->[0];
   }
-  emit_pitch_set( $Atu->transpose( $pset, $t ), rs => $Flag_Record_Sep );
+  emit_pitch_set( $Atu->transpose( $t, $pset ), rs => $Flag_Record_Sep );
 }
 
 sub transpose_invert {
@@ -1047,7 +1049,7 @@ sub transpose_invert {
     $t = $Lyu->notes2pitches($t) - $pset->[0];
   }
 
-  emit_pitch_set( $Atu->transpose_invert( $pset, $t, $axis ),
+  emit_pitch_set( $Atu->transpose_invert( $t, $axis, $pset ),
     rs => $Flag_Record_Sep );
 }
 
