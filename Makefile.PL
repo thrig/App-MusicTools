@@ -33,6 +33,7 @@ my %params = (
     'Test::More'              => 0,
     'Text::Roman'             => 0,
     'Text::Wrap'              => 0,
+    'Try::Tiny'               => 0,
   },
   ( $] >= 5.005
     ? ( AUTHOR => 'Jeremy Mates <jmates@cpan.org>' )

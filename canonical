@@ -15,6 +15,7 @@ use Getopt::Long qw/GetOptionsFromArray/;
 
 use Music::Canon        ();
 use Music::LilyPondUtil ();
+use Try::Tiny;
 
 my $PROG_NAME = basename($0);
 
@@ -51,12 +52,11 @@ my $mode = shift;
 emit_help() if !defined $mode or !exists $Modes{$mode};
 
 my $ret;
-eval { $ret = $Modes{$mode}->(@ARGV) };
-if ($@) {
-  chomp $@;
-  warn "$PROG_NAME: $@\n";
+try { $ret = $Modes{$mode}->(@ARGV) }
+catch {
+  warn "$PROG_NAME: $_";
   $ret = 65;    # assume input data error
-}
+};
 exit $ret;
 
 ########################################################################
@@ -271,15 +271,14 @@ sub do_modal {
   my @new_phrase;
   for my $p (@pitches) {
     my $np;
-    eval { $np = $canon->modal_map($p); };
-    if ($@) {
-      if ( $@ =~ m/^undefined chromatic conversion/ ) {
+    try { $np = $canon->modal_map($p) }
+    catch {
+      if (m/^undefined chromatic conversion/) {
         $np = $whoops_undef;
       } else {
-        chomp $@;
-        die "$@\n";
+        die $_;
       }
-    }
+    };
     push @new_phrase, $np;
   }
   @new_phrase = $lyu->p2ly( map { defined($_) ? $_ : 'r' } @new_phrase )
