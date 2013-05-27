@@ -281,7 +281,10 @@ sub combos {
   $Lyu->ignore_register(0);
   $Lyu->keep_state(1);
   $Lyu->sticky_state(1);
-  if ($relative) {
+  if ( defined $relative ) {
+    if ( $relative =~ m/^\d+$/ ) {
+      die "error: relative must be note name\n";
+    }
     $Lyu->mode('relative');
     $Lyu->prev_note($relative);
   } else {
@@ -686,7 +689,10 @@ sub ly2pitch {
   $Lyu->ignore_register(0);
   $Lyu->keep_state(1);
   $Lyu->sticky_state(1);
-  if ($relative) {
+  if ( defined $relative ) {
+    if ( $relative =~ m/^\d+$/ ) {
+      die "error: relative must be note name\n";
+    }
     $Lyu->mode('relative');
     $Lyu->prev_note($relative);
   } else {
@@ -798,7 +804,10 @@ sub pitch2freq {
   $Lyu->ignore_register(0);
   $Lyu->keep_state(1);
   $Lyu->sticky_state(1);
-  if ($relative) {
+  if ( defined $relative ) {
+    if ( $relative =~ m/^\d+$/ ) {
+      die "error: relative must be note name\n";
+    }
     $Lyu->mode('relative');
     $Lyu->prev_note($relative);
   } else {
