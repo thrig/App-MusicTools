@@ -52,6 +52,7 @@ my %modes = (
   invariants             => \&invariants,
   invert                 => \&invert,
   ly2pitch               => \&ly2pitch,
+  ly2struct              => \&ly2struct,
   multiply               => \&multiply,
   normal_form            => \&normal_form,
   notes2time             => \&notes2time,
@@ -717,6 +718,75 @@ sub ly2pitch {
   print join( ' ', $Lyu->notes2pitches(@notes) ), "\n";
 }
 
+sub ly2struct {
+  my (@args) = @_;
+  my $mode   = 'absolute';
+  my $beats  = 4;
+  my $tempo  = 60;
+  GetOptionsFromArray(
+    \@args, @Std_Opts,
+    'beats=i'           => \$beats,
+    'concertfreq|cf=s'  => \my $concert_freq,
+    'concertpitch|cp=s' => \my $concert_pitch,
+    'relative=s'        => \my $relative,
+    'scala=s'           => \my $scala_file,
+    'tempo=i'           => \$tempo,
+  ) or print_help();
+
+  my $beat_ms = bpm_to_ms( $tempo, $beats );
+  my $scala = _init_scala( $concert_freq, $concert_pitch, $scala_file );
+
+  $Lyu->ignore_register(0);
+  $Lyu->keep_state(1);
+  $Lyu->sticky_state(1);
+  if ( defined $relative ) {
+    if ( $relative =~ m/^\d+$/ ) {
+      die "error: relative must be note name\n";
+    }
+    $Lyu->mode('relative');
+    $Lyu->prev_note($relative);
+  } else {
+    $Lyu->mode('absolute');
+  }
+
+  my @notes;
+  if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
+    chomp( @args = readline STDIN );
+  }
+
+  # split input, as lilypond ' really do not suit the Unix shell, so
+  # are best enclosed in "" blocks
+  for my $arg (@args) {
+    push @notes, split ' ', $arg;
+  }
+
+  if ( !@notes ) {
+    die "Usage: $0 ly2pitch [--relative=note] [-|notes...]\n";
+  }
+
+  my $prev_dur = $beat_ms / 4;
+  for my $note (@notes) {
+    my $pitch = $Lyu->notes2pitches($note);
+    die "pitch '$pitch' out of range\n"
+      if defined $pitch and ( $pitch < 0 or $pitch > 108 );
+    my $duration;
+    if ( $note =~
+      m{ (?<dur>\d+) (?<dots>[.]+)? (?:\*(?<rnumer>\d+)/(?<rdenom>\d+))? }x )
+    {
+      my $dur   = $beats / $+{dur};
+      my $dots  = exists $+{dots} ? length $+{dots} : 0;
+      my $ratio = exists $+{rnumer} ? $+{rnumer} / $+{rdenom} : 1;
+      $dur *= $ratio;
+      $duration = ( 2 * $dur - ( $dur / 2**$dots ) ) * $beat_ms;
+    }
+    $duration //= $prev_dur;
+    my $freq =
+      ( defined $pitch and $pitch != 0 ) ? $scala->pitch2freq($pitch) : 0;
+    printf "\t{ %.0f, %.0f },\t/* %s */\n", $freq, $duration, $note;
+    $prev_dur = $duration;
+  }
+}
+
 sub multiply {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts, 'factor|n=s' => \my $factor, )
@@ -747,13 +817,20 @@ sub notes2time {
   ) or print_help();
 
   my @durations;
-  for my $notespec (@args) {
-    if ( $notespec =~ m/(\d+)([.]+)?/ ) {
-      my $dur = $beats / $1;
-      my $dots = defined $2 ? length $2 : 0;
+  for my $notespec ( map { split ' ' } @args ) {
+    if ( $notespec =~
+      m{ (?<dur>\d+) (?<dots>[.]+)? (?:\*(?<rnumer>\d+)/(?<rdenom>\d+))? }x )
+    {
+      my $dur   = $beats / $+{dur};
+      my $dots  = exists $+{dots} ? length $+{dots} : 0;
+      my $ratio = exists $+{rnumer} ? $+{rnumer} / $+{rdenom} : 1;
+      $dur *= $ratio;
       push @durations, 2 * $dur - ( $dur / 2**$dots );
-    } else {
+    } elsif ( !@durations ) {
       die "unable to parse duration from '$notespec'\n";
+    } else {
+      # assume repeated duration
+      push @durations, $durations[-1];
     }
   }
 
@@ -892,10 +969,10 @@ is a hyphen. Exceptions include:
   multiply  --n=N       Multiply the pitch set by a factor (default is 1).
   pitch2intervalclass   Accepts a single pitch, not a pitch set.
   transpose --n=N       Custom transposition (default is 0).
+     ... and others!
 
 Forte Numbers should be usable anywhere a pitch set can be specified.
-The output will vary depending on the mode, and may include Cope
-tension numbers.
+The output will vary depending on the mode.
 
 Example:
   $0 invert --axis=3  0 3 6 7
@@ -1246,9 +1323,9 @@ with the named root pitch.
 =item B<findin> I<--exclude=p1[,p2]> I<--root=pitch> I<--pitchset=base_set> I<pitches>
 
 Answers questions such as, given a base pitch set of C<[0,3,7]>, and the
-notes d and bes, what pitch sets (via any B<transpose> or
-B<transpose_invert> operation) complete the base pitch set. With I<--
-exclude>, omits results containing the listed pitches. With I<--root>,
+notes D and Bb, what pitch sets (via any B<transpose> or
+B<transpose_invert> operation) complete the base pitch set. With
+I<--exclude>, omits results containing the listed pitches. With I<--root>,
 limits matches to those with the named root pitch.
 
   $ atonal-util findin --exclude=c,ees --pitchset=5-25 d fis a
@@ -1308,6 +1385,40 @@ lilypond C<'> register change from shell quoting rules. Example usages:
   $ atonal-util ly2pitch "c d' e f, g"
   $ atonal-util ly2pitch --relative=a\' a c d b
 
+=item B<ly2struct> I<--relative=note> I<--tempo=t> notes...
+
+Converts lilypond note names and durations to C struct members comprised
+of the frequency in Hz and duration in milliseconds of the note. Handy for
+feeding data to an Arduino C<tone()> call:
+
+  atonal-util ly2struct --relative=c\' --tempo=116 \
+    "c8 d e f8. g32 f e8 a d, g8. a16 g f ..."
+
+And then:
+
+  struct voice {
+      unsigned int freq;
+      unsigned long dur;
+  };
+  struct voice melody[] = {
+      { 262, 259 },	/* c8 */
+      { 294, 259 },	/* d */
+      { 330, 259 },	/* e */
+      { 349, 388 },	/* f8. */
+      { 392, 65 },	/* g32 */
+      { 349, 65 },	/* f */
+      ...
+  };
+  for (i = 0; i < sizeof(melody) / sizeof(voice); i++){
+      if (melody[i].freq != 0)
+          tone(BUZZER_PIN, melody[i].freq);
+      delay(melody[i].dur);
+      noTone(BUZZER_PIN);
+  }
+
+Other (less tested) options include I<--beats> (quarter note by default),
+I<--concertfrequency> and I<--concertpitch>, and a I<--scala> file to use.
+
 =item B<multiply> I<--factor=N>
 
 Multiplies specified pitches by specified factor (C<1> by default).
@@ -1320,9 +1431,9 @@ given pitch set.
 =item B<notes2time> I<--ms> I<--tempo=bpm> I<--beats=b> notedurs
 
 Converts note durations (for example C<4> for a quarter note or C<4.>
-for a dotted quarter note) to time, which is shown in a condensed form,
-unless I<--ms> is supplied, in which case the duration is shown in
-milliseconds.
+for a dotted quarter note, or C<8..*2/3> for a double-dotted eighth note
+of a triplet) to time, which is shown in a condensed form, unless I<--ms>
+is supplied, in which case the duration is shown in milliseconds.
 
 =item B<pcs2forte>
 
@@ -1424,7 +1535,7 @@ integer, or to the specified note. Default axis for inversion is 0 (c).
 =item B<variances>
 
 Accepts two pitch sets, one per line, via standard input. Returns
-three lines consiting of the intersection, difference, and union of
+three lines consisting of the intersection, difference, and union of
 the given sets.
 
 =item B<whatscalesfit>
