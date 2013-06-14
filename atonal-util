@@ -184,16 +184,18 @@ sub _init_scala {
     concertfreq  => $cf,
     concertpitch => $cp,
   );
+  my $p2f = sub { $scala->pitch2freq( $_[0] ) };
   if ( defined $file ) {
     $scala->read_scala($file);
     my @ratios = $scala->get_ratios;
-    if ( @ratios != 12 or $ratios[-1] != 2 ) {
-      # XXX until figure out .kbm file support?
+    if ( @ratios != 12 or !$scala->is_octavish ) {
+      # XXX until figure out .kbm file support
       die "scala scales must be 12-tone and octave bounded\n";
     }
+    $p2f = sub { $scala->interval2freq( $_[0] - $scala->get_concertpitch ) };
   }
 
-  return $scala;
+  return $scala, $p2f;
 }
 
 sub _init_tension {
@@ -292,7 +294,8 @@ sub combos {
     $Lyu->mode('absolute');
   }
 
-  my $scala = _init_scala( $concert_freq, $concert_pitch, $scala_file );
+  my ( $scala, $p2f ) =
+    _init_scala( $concert_freq, $concert_pitch, $scala_file );
 
   my @freqs;
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
@@ -311,7 +314,7 @@ sub combos {
 
   # turn on pitch mode if first note looks more a note than a number
   if ( $Flag_Pitches or $freqs[0] =~ m/[a-g]/ ) {
-    @freqs = map $scala->pitch2freq($_), $Lyu->notes2pitches(@freqs);
+    @freqs = map $p2f->($_), $Lyu->notes2pitches(@freqs);
   }
 
   for my $i ( 1 .. $#freqs ) {
@@ -327,16 +330,10 @@ sub combos {
     my $minus_delta = 0;
     my $errstr      = '';
     try {
-      # XXX if instead have $scala_file, then use $scala->get_concertpitch
-      # hmm.. how do we know freq2pitch mapping? do not have appropriate code
-      # for the scala input side of things - or get pitch using this method,
-      # then search around in that space by interval to see what of the scala
-      # intervals get you the closest, use that as the frequency to compare
-      # with the combo tone? - but only that logic if have a scala_file defined
       $plus_pitch  = $scala->freq2pitch($plus);
       $minus_pitch = $scala->freq2pitch($minus);
-      $plus_delta  = $scala->pitch2freq($plus_pitch) - $plus;
-      $minus_delta = $scala->pitch2freq($minus_pitch) - $minus;
+      $plus_delta  = $p2f->($plus_pitch) - $plus;
+      $minus_delta = $p2f->($minus_pitch) - $minus;
     }
     catch {
       $errstr = "\t/!\\ pitch out of bounds";
@@ -568,7 +565,8 @@ sub freq2pitch {
     'scala=s'           => \my $scala_file,
   ) or print_help();
 
-  my $scala = _init_scala( $concert_freq, $concert_pitch, $scala_file );
+  my ( $scala, $p2f ) =
+    _init_scala( $concert_freq, $concert_pitch, $scala_file );
 
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
     chomp( @args = readline STDIN );
@@ -734,7 +732,8 @@ sub ly2struct {
   ) or print_help();
 
   my $beat_ms = bpm_to_ms( $tempo, $beats );
-  my $scala = _init_scala( $concert_freq, $concert_pitch, $scala_file );
+  my ( $scala, $p2f ) =
+    _init_scala( $concert_freq, $concert_pitch, $scala_file );
 
   $Lyu->ignore_register(0);
   $Lyu->keep_state(1);
@@ -780,8 +779,8 @@ sub ly2struct {
       $duration = ( 2 * $dur - ( $dur / 2**$dots ) ) * $beat_ms;
     }
     $duration //= $prev_dur;
-    my $freq =
-      ( defined $pitch and $pitch != 0 ) ? $scala->pitch2freq($pitch) : 0;
+    my $freq = ( defined $pitch and $pitch != 0 ) ? $p2f->($pitch) : 0;
+    # zero precision due to Arduino tone call accepting integers
     printf "\t{ %.0f, %.0f },\t/* %s */\n", $freq, $duration, $note;
     $prev_dur = $duration;
   }
@@ -876,7 +875,8 @@ sub pitch2freq {
     'scala=s'           => \my $scala_file,
   ) or print_help();
 
-  my $scala = _init_scala( $concert_freq, $concert_pitch, $scala_file );
+  my ( $scala, $p2f ) =
+    _init_scala( $concert_freq, $concert_pitch, $scala_file );
 
   $Lyu->ignore_register(0);
   $Lyu->keep_state(1);
@@ -902,7 +902,7 @@ sub pitch2freq {
     map { split ' ', $_ } @args
     ) {
     die "pitch '$pitch' out of range\n" if $pitch < 0 or $pitch > 108;
-    printf "%d\t%.2f\n", $pitch, $scala->pitch2freq($pitch);
+    printf "%d\t%.2f\n", $pitch, $p2f->($pitch);
   }
 }
 

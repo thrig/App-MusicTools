@@ -44,6 +44,7 @@ _atonalutil_mode() {
     'invariants:list of invariants of a given pitch set' \
     'invert:inversion' \
     'ly2pitch:lilypond note name to pitch number' \
+    'ly2struct:lilypond note name to freq. and dur.' \
     'multiply:multiplication' \
     'normal_form:normal_form' \
     'notes2time:convert note values to time durations' \
@@ -113,7 +114,7 @@ _atonalutil_combos() {
     '--ly[emit notes not pitch numbers]' \
     '--pitches[input pitches instead of frequencies]' \
     '--relative=[relative starting pitch]:pitch:_values "pitches" $pitches' \
-    '--scala=[scala file]:file:_files'
+    '--scala=[scala .scl file]:filename:_files'
 }
 _atonalutil_equivs() {
   _arguments -s \
@@ -158,7 +159,7 @@ _atonalutil_freq2pitch() {
     '(--noflats)--flats[print notes as flats]' \
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]' \
-    '--scala=[scala file]:file:_files'
+    '--scala=[scala .scl file]:filename:_files'
 }
 _atonalutil_interval_class_content() { }
 _atonalutil_intervals2pcs() {
@@ -191,6 +192,15 @@ _atonalutil_ly2pitch() {
   _arguments -s \
     '--relative=[pitch]:pitch:_values "pitches" $pitches'
 }
+_atonalutil_ly2struct() { 
+  _arguments -s \
+    '--beats=[beat value]:beat:(16 8 4 2 1)' \
+    {--concertfreq=,--cf=}'[concert frequency]:frequency:(409 415 422.5 440)' \
+    {--concertpitch=,--cp=}'[concert pitch]:pitch:(69)' \
+    '--relative=[pitch]:pitch:_values "pitches" $pitches' \
+    '--scala=[scala .scl file]:filename:_files' \
+    '--tempo=[beats per minute]:bpm:(40 60 66 72 88 96 108 120 144 168 196)'
+}
 _atonalutil_multiply() {
   _arguments -s \
     '--factor=[multiplication factor]:number:' \
@@ -221,7 +231,7 @@ _atonalutil_pitch2freq() {
     {--concertfreq=,--cf=}'[concert frequency]:frequency:(409 415 422.5 440)' \
     {--concertpitch=,--cp=}'[concert pitch]:pitch:(69)' \
     '--relative=[relative starting pitch]:pitch:_values "pitches" $pitches' \
-    '--scala=[scala file]:file:_files'
+    '--scala=[scala .scl file]:filename:_files'
 }
 _atonalutil_pitch2intervalclass() {
   _arguments -s \
