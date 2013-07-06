@@ -38,6 +38,8 @@ _atonalutil_mode() {
     'fnums:return all Forte Numbers and pitch sets' \
     'freq2pitch:converts frequencies to MIDI note numbers' \
     'forte2pcs:return pitch set for Forte Number' \
+    'gen_melody:generates random atonal melody' \
+    'half_prime_form:half prime or more normal form' \
     'interval_class_content:ICC' \
     'intervals2pcs:intervals to pitch set' \
     'invariance_matrix:invarience under TnI' \
@@ -160,6 +162,20 @@ _atonalutil_freq2pitch() {
     '(--flats)--noflats[print notes not as flats]' \
     '--ly[emit notes not pitch numbers]' \
     '--scala=[scala .scl file]:filename:_files'
+}
+_atonalutil_gen_melody() {
+  _arguments -s \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
+}
+_atonalutil_half_prime_form() {
+  _arguments -s \
+    '(--noflats)--flats[print notes as flats]' \
+    '(--flats)--noflats[print notes not as flats]' \
+    '--ly[emit notes not pitch numbers]' \
+    '--rs=[record separator]:sep:'
 }
 _atonalutil_interval_class_content() { }
 _atonalutil_intervals2pcs() {
