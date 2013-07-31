@@ -40,9 +40,8 @@ my $SCORE_SUFFIX = '.pdf';
 
 my @CLEANUP_SUFFIX = qw/ps pdf/;
 
-my $do_open    = 0;
-my $instrument = "acoustic grand";
-my $is_absolute;
+my $do_open     = 0;
+my $instrument  = "acoustic grand";
 my $partial     = q{};
 my $relative    = q{c'};
 my $repeats     = 1;
@@ -65,7 +64,7 @@ if ( exists $ENV{'SCORE_VIEWER'} ) {
 }
 
 GetOptions(
-  'absolute|abs|a' => \$is_absolute,
+  'absolute|abs|a' => \my $is_absolute,
   'articulate'     => \my $do_articulate,
   'events'         => \my $do_events,
   'help|h|?'       => \&print_help,
@@ -80,6 +79,8 @@ GetOptions(
   'tempo|t=s'      => \$tempo,
   'verbose'        => \my $verbose,
 ) or print_help();
+
+undef $relative if $is_absolute;
 
 $save_layout = 1 if $do_open;
 push @LILYPOND, '--pdf' if $save_layout;

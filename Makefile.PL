@@ -19,7 +19,6 @@ my %params = (
     'Getopt::Long'            => 0,
     'IPC::Open3'              => 0,
     'List::Util'              => 0,
-    'List::MoreUtils'         => 0,
     'Music::AtonalUtil'       => 1.04,
     'Music::Canon'            => 0.50,
     'Music::Chord::Positions' => 0,
