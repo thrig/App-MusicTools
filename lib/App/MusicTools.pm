@@ -6,7 +6,7 @@ use 5.010000;
 use strict;
 use warnings;
 
-our $VERSION = '1.09';
+our $VERSION = '1.10';
 
 1;
 __END__
@@ -26,6 +26,9 @@ App-MusicTools - command line utilities for music composition and analysis
 
   $ canonical modal --input=dorian --output=locrian d e f g a b c
   d dis f g gis ais c
+
+  $ harmonic-fit f e ees d g aes ges b c a bes des
+  ...
 
   $ export MIDI_EDITOR=timidity
   $ ly-fu --instrument=banjo c des ees c des bes c aes
