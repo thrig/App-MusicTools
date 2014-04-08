@@ -3,6 +3,7 @@ LICENSE
 MANIFEST
 Makefile.PL
 README
+SIGNATURE
 atonal-util
 canonical
 capture-stderr

@@ -30,8 +30,6 @@ use Parse::Range qw/parse_range/;
 use Scalar::Util qw/looks_like_number/;
 use Try::Tiny;
 
-my $FORTE_NUMBER_RE = qr/[3-9]-[zZ]?\d{1,2}/;
-
 my $PROG_NAME = basename($0);
 
 my %modes = (
@@ -116,6 +114,7 @@ my $Lyu = Music::LilyPondUtil->new(
   mode            => 'relative'
 );
 my $Tension;
+my $FORTE_NUMBER_RE = $Atu->forte_number_re;
 
 $modes{$mode}->(@ARGV);
 exit 0;
