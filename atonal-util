@@ -1091,7 +1091,8 @@ sub recipe {
 
   open my $fh, '<', $rfile or die "could not open '$rfile': $!\n";
   try {
-    while ( my ( $method, @margs ) = split ' ', readline $fh ) {
+    while ( my $line = readline $fh ) {
+      my ($method, @margs) = split ' ', $line;
       next if !$method or $method =~ m/^[\s#]/;
       chomp @margs;
       die "not a ", ref $Atu, " method" unless $Atu->can($method);
