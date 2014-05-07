@@ -14,7 +14,6 @@ my %params = (
   # Try to list everything due to certain vendors cocking up core Perl... :/
   PREREQ_PM => {
     Carp                      => 0,
-    'File::Slurp'             => 0,
     'File::Spec'              => 0,
     'File::Temp'              => 0,
     'Getopt::Long'            => 0,
@@ -60,4 +59,4 @@ if ( $ExtUtils::MakeMaker::VERSION ge '6.48' ) {
   $params{MIN_PERL_VERSION} = 5.010000;
 }
 
-WriteMakefile( (MM->can('signature_target') ? (SIGN => 1) : ()), %params);
+WriteMakefile( ( MM->can('signature_target') ? ( SIGN => 1 ) : () ), %params );

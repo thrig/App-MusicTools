@@ -9,7 +9,6 @@
 use strict;
 use warnings;
 
-use File::Slurp qw/read_file/;
 use Getopt::Long qw/GetOptions/;
 use JSON                ();
 use Music::LilyPondUtil ();
@@ -22,9 +21,14 @@ my $DEG_IN_SCALE = 12;
 
 GetOptions( 'chart=s' => \my $chart_file );
 
-my $lookup =
-  $json->decode(
-  scalar read_file( defined $chart_file ? $chart_file : \*DATA ) );
+my $fh = \*DATA;
+if ( defined $chart_file ) {
+  open $fh, '<', $chart_file or die "error: could not open '$chart_file': $!\n";
+}
+
+my $lookup = $json->decode(
+  do { local $/; readline $fh }
+);
 
 my @melody;
 for my $input (@ARGV) {

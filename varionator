@@ -10,8 +10,6 @@
 use strict;
 use warnings;
 
-use File::Slurp qw(read_file);
-
 my $possible = possibilities();
 my $sets     = permutations($possible);
 for my $sr (@$sets) {
@@ -79,7 +77,7 @@ sub possibilities {
   if ( @ARGV and $ARGV[-1] ne '-' ) {
     $argstr = "@ARGV";
   } else {
-    $argstr = read_file( \*STDIN );
+    $argstr = do { local $/; readline(*STDIN) };
   }
 
   my @pp = \@possibles;
