@@ -12,7 +12,6 @@ install-music-modules
 lib/App/MusicTools.pm
 ly-fu
 scalemogrifier
-t/0-signature.t
 t/Util.pm
 t/atonal-util.t
 t/canonical.t

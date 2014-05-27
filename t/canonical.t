@@ -108,6 +108,10 @@ my @tests = (
   { cmd => [qw{./canonical --relative=c modal --retrograde c16 d8. e4 f g}],
     expected => [q{g4 f e d8. c16}],
   },
+  # transpositions tricky
+  { cmd => [qw{./canonical modal --transpose=3 --flats --input=minor --output=minor g f ees}],
+    expected => [q{bes a g}],
+  },
 );
 
 for my $cmd (@help_commands) {
