@@ -30,7 +30,8 @@ use Try::Tiny;
 
 my $BASENAME = basename($0);
 
-my @LILYPOND         = qw/lilypond/;
+my @LILYPOND = qw/lilypond/;
+# Debian and OpenBSD being two laggards in this regard...
 my $LILYPOND_VERSION = '2.14.0';
 
 my @MIDI_PLAYER  = qw/timidity/;
@@ -48,6 +49,7 @@ my $repeats     = 1;
 my $save_layout = 0;
 my $skip_midi   = 0;
 my $sleep_kluge = 0;
+my $staff       = 'Staff';
 my $tempo       = 130;
 
 ########################################################################
@@ -64,20 +66,21 @@ if ( exists $ENV{'SCORE_VIEWER'} ) {
 }
 
 GetOptions(
-  'absolute|abs|a' => \my $is_absolute,
-  'articulate'     => \my $do_articulate,
-  'events'         => \my $do_events,
-  'help|h|?'       => \&print_help,
-  'instrument|i=s' => \$instrument,
-  'layout|l'       => \$save_layout,
-  'open'           => \$do_open,
-  'partial|p=s'    => \$partial,
-  'relative|b=s'   => \$relative,
-  'repeats|r=i'    => \$repeats,
-  'silent|s'       => \$skip_midi,
-  'sleep|S=s'      => \$sleep_kluge,
-  'tempo|t=s'      => \$tempo,
-  'verbose'        => \my $verbose,
+  'absolute|abs|a'   => \my $is_absolute,
+  'articulate'       => \my $do_articulate,
+  'events'           => \my $do_events,
+  'help|h|?'         => \&print_help,
+  'instrument|i=s'   => \$instrument,
+  'layout|l'         => \$save_layout,
+  'open'             => \$do_open,
+  'partial|p=s'      => \$partial,
+  'relative|b=s'     => \$relative,
+  'repeats|r=i'      => \$repeats,
+  'rhythmic-staff|R' => sub { $staff = 'RhythmicStaff' },
+  'silent|s'         => \$skip_midi,
+  'sleep|S=s'        => \$sleep_kluge,
+  'tempo|t=s'        => \$tempo,
+  'verbose'          => \my $verbose,
 ) or print_help();
 
 undef $relative if $is_absolute;
@@ -118,7 +121,7 @@ themusic = $rel_str {
   @ARGV
 }
 \\score {
-  \\new Staff << $rel_str {
+  \\new $staff << $rel_str {
 % only in lilypond 2.16
 %   \\accidentalStyle "neo-modern"
     \\set Staff.instrumentName = #"$instrument"
@@ -199,8 +202,7 @@ if ( !$save_layout ) {
 } else {
   # Might want to share the files, so avoid whoops-perm-denied-chmod-
   # a+r phase of that process.
-  chmod 0644, $midi_fname, $src_fname,
-    map { "$src_fname.$_" } @CLEANUP_SUFFIX;
+  chmod 0644, $midi_fname, $src_fname, map { "$src_fname.$_" } @CLEANUP_SUFFIX;
 }
 
 exit $exit_status;
