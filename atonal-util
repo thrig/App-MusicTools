@@ -546,6 +546,8 @@ sub findin {
   $Lyu->chrome('flats') if $Flag_Flat;
 
   my $ps_base;
+  die "error: atonal-util findin needs --pitchset=... option\n"
+    if !defined $base_input;
   if ( $base_input =~ m/^\d-/ ) {
     $ps_base = $Atu->forte2pcs($base_input);
     die "unknown Forte Number '$base_input'\n" if !defined $ps_base;
