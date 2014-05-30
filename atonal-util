@@ -1394,17 +1394,22 @@ from setting this to 16, depending.
 
 =head1 MODES
 
-Most modes accept a pitch set. These comprise raw pitch numbers
-(integers) or lilypond note names (bis, c, des, etc.) specified either
-on the command line or via standard input, though some modes have other
+Most modes accept a pitch set. These comprise raw pitch numbers (integers), or
+lilypond note names (bis, c, des, etc.), or a Forte Number, specified either on
+the command line or via standard input, though some modes have other
 conventions or input they accept.
+
+  atonal-util basic 0 4 7 10
+  atonal-util basic c e g bes
+  atonal-util basic 4-27
 
 Various global flags (listed above) can be specified as options to modes
 where they make sense.
 
 =head2 B<basic> I<pitch_set>
 
-Shows the B<prime_form> and B<interval_class_content>.
+Shows the B<prime_form> and B<interval_class_content> and perhaps other
+details.
 
 =head2 B<beats2set> I<beats>
 
@@ -1416,7 +1421,7 @@ C<.> a rest. An example may help:
 
 B<set2beats> performs the reverse operation of this.
 
-=head2 B<circular_permute>
+=head2 B<circular_permute> I<pitch_set>
 
 All permutations by rotation of the input pitch set. See
 L<Music::AtonalUtil> for details.
@@ -1438,16 +1443,16 @@ specify a different reference pitch than 440 Hz. This will affect both
 notes input (different frequencies) and output (how error amounts for
 how far the resulting combination tone is from the nearest pitch).
 
-=head2 B<complement>
+=head2 B<complement> I<pitch_set>
 
 Emits those pitches not listed in the input. See L<Music::AtonalUtil>.
 
-=head2 B<equivs>
+=head2 B<equivs> I<pitch_set>
 
 Lists equivalents of the input pitch set under various transposition and
 inverse transposition operations.
 
-=head2 B<findall> I<--exclude=p1[,p2]> I<--fn=nums> I<--root=pitch> I<pitches>
+=head2 B<findall> I<--exclude=p1[,p2]> I<--fn=nums> I<--root=pitch> I<pitch_set>
 
 Find all Forte pitch sets in which the given pitches exist. Like
 B<findin>, except iterates over all Forte pitch sets instead of just a
@@ -1460,7 +1465,7 @@ with the named root pitch.
 
   $ atonal-util findall --root=c --fn=4-5 c e g bes
 
-=head2 B<findin> I<--exclude=p1[,p2]> I<--root=pitch> I<--pitchset=base_set> I<pitches>
+=head2 B<findin> I<--exclude=p1[,p2]> I<--root=pitch> I<--pitchset=base_set> I<pitch_set>
 
 Answers questions such as, given a base pitch set of C<[0,3,7]>, and the
 notes D and Bb, what pitch sets (via any B<transpose> or
@@ -1495,38 +1500,38 @@ specify a different reference pitch than 440 Hz.
 Generates a random melody perhaps suitable for subsequent atonal use.
 See code and documentation over in L<Music::AtonalUtil> for details.
 
-=head2 B<half_prime_form>
+=head2 B<half_prime_form> I<pitch_set>
 
 Shows the "more normal" or "half prime" form of a pitch set, which may
 or may not differ from the B<prime_form> of the pitch set. This output,
 if relevant, is also emitted in the B<basic> mode.
 
-=head2 B<interval_class_content>
+=head2 B<interval_class_content> I<pitch_set>
 
 See L<Music::AtonalUtil>, or
 https://en.wikipedia.org/wiki/Interval_vector
 
-=head2 B<intervals2pcs> I<--pitch=startpitch>
+=head2 B<intervals2pcs> I<--pitch=startpitch> I<pitch_set>
 
 Converts a list of intervals to a pitch set. The default starting
 pitch is 0.
 
-=head2 B<invariance_matrix>
+=head2 B<invariance_matrix> I<pitch_set>
 
 Invariance under Transpose(N)Inversion operation matrix. See
 L<Music::AtonalUtil>.
 
-=head2 B<invariants>
+=head2 B<invariants> I<pitch_set>
 
 Returns list of B<transpose> or B<transpose_invert> operations that have
 invariant pitches with the supplied pitch set, along with which pitches
 have not varied.
 
-=head2 B<invert> I<--axis=inversion_axis>
+=head2 B<invert> I<--axis=inversion_axis> I<pitch_set>
 
 See L<Music::AtonalUtil>. Default axis is around pitch 0.
 
-=head2 B<ly2pitch> I<--relative=note> notes...
+=head2 B<ly2pitch> I<--relative=note> I<notes...>
 
 Converts lilypond note names to pitch numbers, via absolute mode by
 default. The input unlike in other modes may be quoted to protect the
@@ -1536,7 +1541,7 @@ lilypond C<'> register change from shell quoting rules. Example usages:
   $ atonal-util ly2pitch "c d' e f, g"
   $ atonal-util ly2pitch --relative=a\' a c d b
 
-=head2 B<ly2struct> I<--relative=note> I<--tempo=t> notes...
+=head2 B<ly2struct> I<--relative=note> I<--tempo=t> I<notes...>
 
 Converts lilypond note names and durations to C struct members comprised
 of the frequency in Hz and duration in milliseconds of the note. Handy for
@@ -1570,36 +1575,36 @@ And then:
 Other (less tested) options include I<--beats> (quarter note by default),
 I<--concertfrequency> and I<--concertpitch>, and a I<--scala> file to use.
 
-=head2 B<multiply> I<--factor=N>
+=head2 B<multiply> I<--factor=N> I<pitch_set>
 
 Multiplies specified pitches by specified factor (C<1> by default).
 
-=head2 B<normal_form>
+=head2 B<normal_form> I<pitch_set>
 
 Returns the normal form (via the "packed from the right" method) of the
 given pitch set.
 
-=head2 B<notes2time> I<--ms> I<--tempo=bpm> I<--beats=b> notedurs
+=head2 B<notes2time> I<--ms> I<--tempo=bpm> I<--beats=b> I<notedurs...>
 
 Converts note durations (for example C<4> for a quarter note or C<4.>
 for a dotted quarter note, or C<8..*2/3> for a double-dotted eighth note
 of a triplet) to time, which is shown in a condensed form, unless I<--ms>
 is supplied, in which case the duration is shown in milliseconds.
 
-=head2 B<pcs2forte>
+=head2 B<pcs2forte> I<pitch_set>
 
 Given a pitch set, returns the corresponding Forte Number, if any.
 
-=head2 B<pcs2intervals>
+=head2 B<pcs2intervals> I<pitch_set>
 
 Given a pitch set of at least two elements, returns the list of
 intervals between the pitches.
 
 =head2 B<pitch2freq> I<pitches...>
 
-Converts pitches to frequencies (in Hz) using the standard MIDI note
-number conversion equation. Reads pitches (or lilypond notes) line-by-
-line from standard input if the only pitch given is C<->.
+Converts pitches to frequencies (in Hz) using the standard MIDI note number
+conversion equation. Reads pitches (or lilypond notes) line-by-line from
+standard input if the only pitch given is C<->.
 
 This mode also accepts the I<--concertfreq> or I<--cf> argument to
 specify a different reference pitch than 440 Hz.
@@ -1614,7 +1619,7 @@ Converts pitches (integers) to lilypond note names. Reads pitches line-by-
 line from standard input if only pitch given is C<->. Use the I<--mode>
 option to specify relative or absolute conversion.
 
-=head2 B<prime_form>
+=head2 B<prime_form> I<pitch_set>
 
 Returns the prime form of the given pitch set.
 
@@ -1627,17 +1632,17 @@ set. One possibility for C<recipefile> contents might be:
   invert 6
   transpose 1
 
-=head2 B<retrograde>
+=head2 B<retrograde> I<pitch_set>
 
 Reverses the given list of pitches.
 
-=head2 B<rotate> I<--rotate=integer>
+=head2 B<rotate> I<--rotate=integer> I<pitch_set>
 
 Rotates the pitch set by the given integer (by default C<0> or no
 rotation). L<Music::AtonalUtil> also has a B<rotateby> method to rotate
 to a particular element that may be of use in composition.
 
-=head2 B<set2beats>
+=head2 B<set2beats> I<pitch_set>
 
 Converts a set class into a list of rhythmic beats. Reverse of what
 B<beats2set> does.
@@ -1651,23 +1656,23 @@ Far more interesting might be to listen to the set:
     perl -pe 'tr/x./cr/; s/(.)/${1}16 /g' | \
     ly-fu --tempo=168 --repeats=16 -
 
-=head2 B<set_complex>
+=head2 B<set_complex> I<pitch_set>
 
 Computes the set complex of a pitch set (a table of the pitch set, pitch
 set inversion, and their combination).
 
-=head2 B<subsets> [ I<--length=integer> ]
+=head2 B<subsets> [ I<--length=integer> ] I<pitch_set>
 
 See L<Music::AtonalUtil>. The length, if supplied, must be a magnitude
 equal to or less than the number of pitches supplied, and probably also
 two or higher.
 
-=head2 B<tcs>
+=head2 B<tcs> I<pitch_set>
 
 Transposition common-tone structure. See L<Music::AtonalUtil>. Probably
 easier to use the B<invariants> mode to list the full results.
 
-=head2 B<tcis>
+=head2 B<tcis> I<pitch_set>
 
 As above method except with B<transpose_invert> instead of B<transpose>.
 Probably easier to use the B<invariants> mode to list the full results.
@@ -1678,7 +1683,7 @@ Returns the average, min, max, and tension values for all the tensions
 in the passed pitch set, from the first notes in the set up to the last.
 Tensions calculated via L<Music::Tension::Cope>.
 
-=head2 B<transpose> I<--transpose=integer_or_note>
+=head2 B<transpose> I<--transpose=integer_or_note> I<pitch_set>
 
 Transposes the supplied pitches by the specified integer (by default 0,
 or a no-op), or to the specified note.
@@ -1692,7 +1697,7 @@ Register aware transpositions are possible with the C<canonical> tool of
 the L<App::MusicTools> module, among many other nifty features (modal
 transpositions, etc).
 
-=head2 B<transpose_invert> I<--transpose=integer_or_note> [ I<--axis=integer_or_note> ]
+=head2 B<transpose_invert> I<--transpose=integer_or_note> [ I<--axis=integer_or_note> ] I<pitch_set>
 
 Inverts and then transposes the supplied pitch set by the specified
 integer, or to the specified note. Default axis for inversion is 0 (c).
@@ -1703,7 +1708,7 @@ Accepts two pitch sets, one per line, via standard input. Returns
 three lines consisting of the intersection, difference, and union of
 the given sets.
 
-=head2 B<whatscalesfit>
+=head2 B<whatscalesfit> I<pitch_set>
 
 Given a list of pitches or notes, shows what scales, if any, fit those
 notes. Only diatonics of the scale are considered; there is no support
