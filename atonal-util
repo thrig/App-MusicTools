@@ -34,6 +34,7 @@ my $PROG_NAME = basename($0);
 
 my %modes = (
   basic                  => \&basic,
+  beats2set              => \&beats2set,
   circular_permute       => \&circular_permute,
   combos                 => \&combos,
   complement             => \&complement,
@@ -64,6 +65,7 @@ my %modes = (
   recipe                 => \&recipe,
   retrograde             => \&retrograde,
   rotate                 => \&rotate,
+  set2beats              => \&set2beats,
   set_complex            => \&set_complex,
   subsets                => \&subsets,
   tcis                   => \&tcis,
@@ -97,9 +99,9 @@ while ( @ARGV and !exists $modes{ $ARGV[0] } ) {
 GetOptionsFromArray(
   \@leading_args,
   @Std_Opts,
-  'help'           => \&print_help,
-  'listmodes'      => sub { print "$_\n" for sort keys %modes; exit 0 },
-  'scaledegrees=s' => \my $scale_degrees,
+  'help'              => \&print_help,
+  'listmodes'         => sub { print "$_\n" for sort keys %modes; exit 0 },
+  'scaledegrees|sd=s' => \my $scale_degrees,
 ) or print_help();
 $scale_degrees //= 12;
 my $mode = shift;
@@ -113,6 +115,8 @@ my $Lyu = Music::LilyPondUtil->new(
   keep_state      => 0,
   mode            => 'relative'
 );
+$Lyu->ignore_register(0) if $scale_degrees != 12;
+
 my $Tension;
 my $FORTE_NUMBER_RE = $Atu->forte_number_re;
 
@@ -179,8 +183,7 @@ sub _fit_scale {
       my $scale_fmt = join '', ('%-6s') x @scale_nums;
       my $scale_notes = sprintf $scale_fmt, $Lyu->p2ly(@scale_nums);
 
-      printf "%-3s%-18s%-8s%s\n", "\u$tonic", "\u$scale", $dsc_flag,
-        $scale_notes;
+      printf "%-3s%-18s%-8s%s\n", "\u$tonic", "\u$scale", $dsc_flag, $scale_notes;
     }
   }
 }
@@ -239,7 +242,7 @@ sub args2pitchset {
     die "unknown Forte Number '$args[0]'\n" if !defined $pitch_set;
   } else {
     for my $arg (@args) {
-      for my $p ( $arg =~ /([-\d\w]+)/g ) {
+      for my $p ( $arg =~ /(-?\d+|\w+)/g ) {
         push @$pitch_set, $Lyu->notes2pitches($p);
       }
     }
@@ -276,6 +279,37 @@ sub basic {
     _init_tension();
     printf "%.03f  %.03f  %.03f\n", $Tension->vertical($pset);
   }
+}
+
+# Converts [x..x..x...x.x...] form to (0,3,6,10,12) set form
+sub beats2set {
+  my (@args) = @_;
+  GetOptionsFromArray( \@args, @Std_Opts, 'scaledegrees|sd=s' => \my $sd, )
+    or print_help();
+  if ($sd) {
+    $Atu = Music::AtonalUtil->new( DEG_IN_SCALE => $sd );
+  } else {
+    $sd = $Atu->scale_degrees;
+  }
+
+  my $arg = "@ARGV";
+  $arg =~ tr/x.//cd;
+
+  my @set;
+  my $i = 0;
+  for my $l ( split //, $arg ) {
+    if ( $l eq 'x' ) {
+      push @set, $i;
+    }
+    $i++;
+  }
+  # E_NO_RAPPING
+  die "error: beats in input exceeds available ($i > $sd)\n" if $i > $sd;
+  if ( $i < $sd ) {
+    warn "notice: incomplete beats ($i < $sd)\n" unless $Flag_Quiet;
+  }
+
+  emit_pitch_set( \@set, rs => $Flag_Record_Sep );
 }
 
 # TODO but would also need means to encode all the different possible
@@ -360,8 +394,7 @@ sub combos {
     $Lyu->mode('absolute');
   }
 
-  my ( $scala, $p2f ) =
-    _init_scala( $concert_freq, $concert_pitch, $scala_file );
+  my ( $scala, $p2f ) = _init_scala( $concert_freq, $concert_pitch, $scala_file );
 
   my @freqs;
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
@@ -555,14 +588,12 @@ TRANS: for my $i ( 0 .. $Atu->scale_degrees - 1 ) {
 
       my $tstr = '';
       if ($Flag_Tension) {
-        $tstr = sprintf "\t%.03f  %.03f  %.03f",
-          $Tension->vertical( \@pitches );
+        $tstr = sprintf "\t%.03f  %.03f  %.03f", $Tension->vertical( \@pitches );
       }
 
       @pitches = $Lyu->p2ly(@pitches) if $Flag_Lyout;
 
-      printf "%s\tT(%d)\t%-${ps_width}s%s\n", $fnum, $i,
-        join( ',', @pitches ), $tstr;
+      printf "%s\tT(%d)\t%-${ps_width}s%s\n", $fnum, $i, join( ',', @pitches ), $tstr;
     }
   }
 
@@ -580,8 +611,7 @@ TRANSINV: for my $i ( 0 .. $Atu->scale_degrees - 1 ) {
 
       my $tstr = '';
       if ($Flag_Tension) {
-        $tstr = sprintf "\t%.03f  %.03f  %.03f",
-          $Tension->vertical( \@pitches );
+        $tstr = sprintf "\t%.03f  %.03f  %.03f", $Tension->vertical( \@pitches );
       }
 
       @pitches = $Lyu->p2ly(@pitches) if $Flag_Lyout;
@@ -631,8 +661,7 @@ sub freq2pitch {
     'scala=s'           => \my $scala_file,
   ) or print_help();
 
-  my ( $scala, $p2f ) =
-    _init_scala( $concert_freq, $concert_pitch, $scala_file );
+  my ( $scala, $p2f ) = _init_scala( $concert_freq, $concert_pitch, $scala_file );
 
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
     chomp( @args = readline STDIN );
@@ -814,8 +843,7 @@ sub ly2struct {
   ) or print_help();
 
   my $beat_ms = bpm_to_ms( $tempo, $beats );
-  my ( $scala, $p2f ) =
-    _init_scala( $concert_freq, $concert_pitch, $scala_file );
+  my ( $scala, $p2f ) = _init_scala( $concert_freq, $concert_pitch, $scala_file );
 
   $Lyu->ignore_register(0);
   $Lyu->keep_state(1);
@@ -851,8 +879,8 @@ sub ly2struct {
     die "pitch '$pitch' out of range\n"
       if defined $pitch and ( $pitch < 0 or $pitch > 108 );
     my $duration;
-    if ( $note =~
-      m{ (?<dur>\d+) (?<dots>[.]+)? (?:\*(?<rnumer>\d+)/(?<rdenom>\d+))? }x )
+    if (
+      $note =~ m{ (?<dur>\d+) (?<dots>[.]+)? (?:\*(?<rnumer>\d+)/(?<rdenom>\d+))? }x )
     {
       my $dur   = $beats / $+{dur};
       my $dots  = exists $+{dots} ? length $+{dots} : 0;
@@ -900,8 +928,7 @@ sub notes2time {
   my @durations;
   for my $notespec ( map { split ' ' } @args ) {
     if ( $notespec =~
-      m{ (?<dur>\d+) (?<dots>[.]+)? (?:\*(?<rnumer>\d+)/(?<rdenom>\d+))? }x )
-    {
+      m{ (?<dur>\d+) (?<dots>[.]+)? (?:\*(?<rnumer>\d+)/(?<rdenom>\d+))? }x ) {
       my $dur   = $beats / $+{dur};
       my $dots  = exists $+{dots} ? length $+{dots} : 0;
       my $ratio = exists $+{rnumer} ? $+{rnumer} / $+{rdenom} : 1;
@@ -957,8 +984,7 @@ sub pitch2freq {
     'scala=s'           => \my $scala_file,
   ) or print_help();
 
-  my ( $scala, $p2f ) =
-    _init_scala( $concert_freq, $concert_pitch, $scala_file );
+  my ( $scala, $p2f ) = _init_scala( $concert_freq, $concert_pitch, $scala_file );
 
   $Lyu->ignore_register(0);
   $Lyu->keep_state(1);
@@ -1092,7 +1118,7 @@ sub recipe {
   open my $fh, '<', $rfile or die "could not open '$rfile': $!\n";
   try {
     while ( my $line = readline $fh ) {
-      my ($method, @margs) = split ' ', $line;
+      my ( $method, @margs ) = split ' ', $line;
       next if !$method or $method =~ m/^[\s#]/;
       chomp @margs;
       die "not a ", ref $Atu, " method" unless $Atu->can($method);
@@ -1122,6 +1148,28 @@ sub rotate {
   die "rotate must be number\n" unless looks_like_number $r;
   emit_pitch_set( $Atu->rotate( $r, args2pitchset(@args) ),
     rs => $Flag_Record_Sep );
+}
+
+sub set2beats {
+  my (@args) = @_;
+  GetOptionsFromArray( \@args, @Std_Opts, 'scaledegrees|sd=s' => \my $sd, )
+    or print_help();
+  if ($sd) {
+    $Atu = Music::AtonalUtil->new( DEG_IN_SCALE => $sd );
+  } else {
+    $sd = $Atu->scale_degrees;
+  }
+
+  $Lyu->ignore_register(0) if $sd != 12;
+
+  my $pset = args2pitchset(@args);
+  my %set;
+  @set{@$pset} = ();
+  my $beats;
+  for my $n ( 0 .. $sd - 1 ) {
+    $beats .= exists $set{$n} ? 'x' : '.';
+  }
+  print $beats, "\n";
 }
 
 sub set_complex {
@@ -1240,8 +1288,7 @@ sub whatscalesfit {
     $p %= $scale_degrees;
   }
 
-  my @scales =
-    qw/major dorian phrygian lydian mixolydian aeolian locrian blues/;
+  my @scales = qw/major dorian phrygian lydian mixolydian aeolian locrian blues/;
   push @scales, "harmonic minor", "melodic minor", "hungarian minor";
 
   for my $scale (@scales) {
@@ -1256,8 +1303,7 @@ sub whatscalesfit {
 }
 
 sub zrelation {
-  emit_pitch_set( [ $Atu->zrelation( @{ stdin2pitchsets() } ) ],
-    lyflag => 0 );
+  emit_pitch_set( [ $Atu->zrelation( @{ stdin2pitchsets() } ) ], lyflag => 0 );
 }
 
 END {
@@ -1338,8 +1384,9 @@ Show lilypond note names instead of raw pitch numbers.
 
 =item B<--scaledegrees>
 
-Adjust the number of scale degrees (default: 12). May cause strange,
-untested results from various calculations, use with caution.
+Adjust the number of scale degrees (default: 12). May cause strange, untested
+results from various calculations, use with caution. Rhythm work might benefit
+from setting this to 16, depending.
 
 =back
 
@@ -1356,6 +1403,16 @@ where they make sense.
 =head2 B<basic> I<pitch_set>
 
 Shows the B<prime_form> and B<interval_class_content>.
+
+=head2 B<beats2set> I<beats>
+
+Converts rhythmic beats to a "pitch" set, where C<x> represents an onset, and
+C<.> a rest. An example may help:
+
+  $ atonal-util beats2set --scaledegrees=16 x..x ..x. ..x. x...
+  0,3,6,10,12
+
+B<set2beats> performs the reverse operation of this.
 
 =head2 B<circular_permute>
 
@@ -1578,6 +1635,20 @@ Rotates the pitch set by the given integer (by default C<0> or no
 rotation). L<Music::AtonalUtil> also has a B<rotateby> method to rotate
 to a particular element that may be of use in composition.
 
+=head2 B<set2beats>
+
+Converts a set class into a list of rhythmic beats. Reverse of what
+B<beats2set> does.
+
+  $ atonal-util set2beats 4-27 
+  x.x..x..x...
+
+Far more interesting might be to listen to the set:
+
+  $ atonal-util set2beats 5-z38 | \
+    perl -pe 'tr/x./cr/; s/(.)/${1}16 /g' | \
+    ly-fu --tempo=168 --repeats=16 -
+
 =head2 B<set_complex>
 
 Computes the set complex of a pitch set (a table of the pitch set, pitch
@@ -1675,7 +1746,7 @@ Jeremy Mates
 
 =head1 COPYRIGHT
 
-Copyright (C) 2012-2013 by Jeremy Mates
+Copyright (C) 2012-2014 by Jeremy Mates
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself, either Perl version 5.16 or, at
