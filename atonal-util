@@ -115,7 +115,7 @@ my $Lyu = Music::LilyPondUtil->new(
   keep_state      => 0,
   mode            => 'relative'
 );
-if ( $scale_degress != 12 ) {
+if ( $scale_degrees != 12 ) {
   $Lyu->ignore_register(0);
   $Flag_Lyout = 0;
 }
