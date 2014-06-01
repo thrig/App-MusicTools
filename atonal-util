@@ -115,7 +115,10 @@ my $Lyu = Music::LilyPondUtil->new(
   keep_state      => 0,
   mode            => 'relative'
 );
-$Lyu->ignore_register(0) if $scale_degrees != 12;
+if ( $scale_degress != 12 ) {
+  $Lyu->ignore_register(0);
+  $Flag_Lyout = 0;
+}
 
 my $Tension;
 my $FORTE_NUMBER_RE = $Atu->forte_number_re;
@@ -309,7 +312,11 @@ sub beats2set {
     warn "notice: incomplete beats ($i < $sd)\n" unless $Flag_Quiet;
   }
 
-  emit_pitch_set( \@set, rs => $Flag_Record_Sep );
+  my $lyify = $Flag_Lyout;
+  if ( $sd != 12 ) {
+    $lyify = 0;
+  }
+  emit_pitch_set( \@set, lyflag => $lyify, rs => $Flag_Record_Sep );
 }
 
 # TODO but would also need means to encode all the different possible
