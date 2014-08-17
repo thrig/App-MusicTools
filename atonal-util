@@ -1389,7 +1389,8 @@ Displays supported operation modes and exits the program.
 
 =item B<--ly>
 
-Show lilypond note names instead of raw pitch numbers.
+Show lilypond note names instead of raw pitch numbers. This feature may be
+disabled if the scale degrees is altered from 12.
 
 =item B<--scaledegrees>
 
