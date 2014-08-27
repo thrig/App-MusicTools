@@ -35,7 +35,7 @@ my @Std_Opts              = (
   'retrograde|r!'  => \my $Flag_Retrograde,
   'transpose|t=s'  => \my $Flag_Transpose,
 );
-my $chrome_weight = 0;
+my $modal_chrome = 0;
 
 # NOTE may false positive if there is a standalone argument option with
 # the same contents as a mode name; however, with ZSH tab completion I'm
@@ -67,7 +67,7 @@ exit $ret;
 # globally or as mode options.
 sub _init_obj {
   my $c = Music::Canon->new(
-    chrome_weight     => $chrome_weight,
+    modal_chrome      => $modal_chrome,
     contrary          => $Flag_Contrary,
     non_octave_scales => $Flag_Non_Octave_Scale,
     retrograde        => $Flag_Retrograde,
@@ -98,8 +98,7 @@ sub _parse_modal_opt {
     @dsc = split ',', $dsc;
   }
 
-  my @ret = grep defined, @asc > 1 ? \@asc : $asc[0],
-    @dsc > 1 ? \@dsc : $dsc[0];
+  my @ret = grep defined, @asc > 1 ? \@asc : $asc[0], @dsc > 1 ? \@dsc : $dsc[0];
   return @ret;
 }
 
@@ -239,7 +238,7 @@ sub do_modal {
   my @args = @_;
   GetOptionsFromArray(
     \@args, @Std_Opts,
-    'chrome=i'        => \$chrome_weight,
+    'chrome=i'        => \$modal_chrome,
     'endpitch|ep=s'   => \my $end_pitch,
     'help|h'          => \&emit_help_modal,
     'input=s'         => \my $input_mode,
@@ -250,9 +249,9 @@ sub do_modal {
   ) or emit_help_modal();
   my ( $canon, $lyu ) = _init_obj();
 
-  $canon->set_scale_intervals( 'input', _parse_modal_opt($input_mode) )
+  $canon->set_modal_scale_in( _parse_modal_opt($input_mode) )
     if defined $input_mode;
-  $canon->set_scale_intervals( 'output', _parse_modal_opt($output_mode) )
+  $canon->set_modal_scale_out( _parse_modal_opt($output_mode) )
     if defined $output_mode;
 
   $canon->set_modal_pitches( $start_pitch, $end_pitch )
@@ -268,24 +267,11 @@ sub do_modal {
   my @pitches = $lyu->notes2pitches( map split, @args );
   my @rhythm = map { /[^\d-](\d+[.]*)/ ? $1 : '' } map split, @args;
 
-  my @new_phrase;
-  for my $p (@pitches) {
-    my $np;
-    try { $np = $canon->modal_map($p) }
-    catch {
-      if (m/^undefined chromatic conversion/) {
-        $np = $whoops_undef;
-      } else {
-        die $_;
-      }
-    };
-    push @new_phrase, $np;
-  }
-  @new_phrase = $lyu->p2ly( map { defined($_) ? $_ : 'r' } @new_phrase )
+  my @new_phrase = $canon->modal_map( \@pitches );
+  @new_phrase = $lyu->p2ly( map { defined($_) ? $_ : $whoops_undef } @new_phrase )
     if !$Flag_Raw;
 
   if ( $canon->get_retrograde ) {
-    @new_phrase = reverse @new_phrase;
     _reverse_rhythm( \@rhythm );
   }
 
