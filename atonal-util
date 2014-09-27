@@ -280,7 +280,8 @@ sub basic {
 
   if ($Flag_Tension) {
     _init_tension();
-    printf "%.03f  %.03f  %.03f\n", $Tension->vertical($pset);
+    my ($sum, $min, $max, undef) = $Tension->vertical($pset);
+    printf "%.03f  %.03f  %.03f\n", $sum, $min, $max;
   }
 }
 
