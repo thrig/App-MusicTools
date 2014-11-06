@@ -5,63 +5,49 @@
 #   ly-fu c des ees c des bes c aes
 #
 # NOTE this utility assumes Mac OS X and timidity by default; set the
-# MIDI_EDITOR and SCORE_VIEWER environment variables, or adjust this
-# code as necessary. zathura is a handy PDF viewer, if available:
-#
-#   function open {
-#     zathura "$@" 2> /dev/null &|
-#   }
+# MIDI_EDITOR and SCORE_VIEWER environment variables, or adjust this code as
+# necessary, or create suitably named programs that DTRT.
 #
 # Run perldoc(1) on this file for additional documentation.
 #
-# A ZSH completion script is available in the zsh-compdef/ directory of
-# the App::MusicTools distribution.
+# A ZSH completion script is available in the zsh-compdef/ directory of the
+# App::MusicTools distribution.
 
 use strict;
 use warnings;
 
 use File::Basename qw/basename/;
 use File::Spec ();
-use File::Temp qw/tempfile/;
+use File::Temp ();
 use Getopt::Long qw/GetOptions/;
 use IO::Handle;
-use IPC::Open3 qw/open3/;
-use Try::Tiny;
+use IPC::Run3 qw/run3/;
 
-my $BASENAME = basename($0);
+my $Prog_Name = basename $0;
 
-my @LILYPOND = qw/lilypond/;
-# Debian and OpenBSD being two laggards in this regard...
-my $LILYPOND_VERSION = '2.14.0';
+my @Lilypond_Cmd = qw/lilypond/;
+my @MIDI_Player  = qw/timidity/;
+my @Score_Reader = qw/open/;
 
-my @MIDI_PLAYER  = qw/timidity/;
-my $MIDI_SUFFIX  = '.midi';
-my @SCORE_READER = qw/open -a Preview.app/;
-my $SCORE_SUFFIX = '.pdf';
+my $LILYPOND_VERSION = '2.18.2';
 
-my @CLEANUP_SUFFIX = qw/ps pdf/;
-
-my $do_open     = 0;
-my $instrument  = "acoustic grand";
-my $partial     = q{};
-my $relative    = q{c'};
-my $repeats     = 1;
-my $save_layout = 0;
-my $skip_midi   = 0;
-my $sleep_kluge = 0;
-my $staff       = 'Staff';
-my $tempo       = 130;
+my $instrument = "acoustic grand";
+my $partial    = q{};
+my $relative   = q{c'};
+my $repeats    = 1;
+my $staff      = 'Staff';
+my $tempo      = 130;
 
 ########################################################################
 #
 # MAIN
 
 if ( exists $ENV{'MIDI_EDITOR'} ) {
-  @MIDI_PLAYER = map { s{(?<!\\)\\}{}g; $_ } split /(?<!\\)\s+/,
+  @MIDI_Player = map { s{(?<!\\)\\}{}g; $_ } split /(?<!\\)\s+/,
     $ENV{'MIDI_EDITOR'};
 }
 if ( exists $ENV{'SCORE_VIEWER'} ) {
-  @SCORE_READER = map { s{(?<!\\)\\}{}g; $_ } split /(?<!\\)\s+/,
+  @Score_Reader = map { s{(?<!\\)\\}{}g; $_ } split /(?<!\\)\s+/,
     $ENV{'SCORE_VIEWER'};
 }
 
@@ -69,32 +55,27 @@ GetOptions(
   'absolute|abs|a'   => \my $is_absolute,
   'articulate'       => \my $do_articulate,
   'events'           => \my $do_events,
-  'help|h|?'         => \&print_help,
+  'help|h|?'         => \&emit_help,
   'instrument|i=s'   => \$instrument,
-  'layout|l'         => \$save_layout,
-  'open'             => \$do_open,
+  'layout|l'         => \my $Flag_Generate_Score,
+  'open'             => \my $Flag_Show_Score,
   'partial|p=s'      => \$partial,
   'relative|b=s'     => \$relative,
   'repeats|r=i'      => \$repeats,
   'rhythmic-staff|R' => sub { $staff = 'RhythmicStaff' },
-  'silent|s'         => \$skip_midi,
-  'sleep|S=s'        => \$sleep_kluge,
+  'show-code'        => \my $Flag_Show_Code,
+  'silent|s'         => \my $Flag_No_MIDI,
+  'sleep|S=i'        => \my $Flag_Sleep_Kluge,
   'tempo|t=s'        => \$tempo,
-  'verbose'          => \my $verbose,
-) or print_help();
+  'verbose'          => \my $Flag_Verbose,
+) or do { warn "could not parse options\n"; emit_help() };
 
 undef $relative if $is_absolute;
 
-$save_layout = 1 if $do_open;
-push @LILYPOND, '--pdf' if $save_layout;
+$Flag_Generate_Score = 1 if $Flag_Show_Score;
+push @Lilypond_Cmd, '--pdf' if $Flag_Generate_Score;
 
-my ( $src_fh, $src_fname ) = tempfile(
-  "$BASENAME.XXXXXXXXXX",
-  DIR    => File::Spec->tmpdir,
-  UNLINK => 0
-);
-my $midi_fname  = $src_fname . $MIDI_SUFFIX;
-my $score_fname = $src_fname . $SCORE_SUFFIX;
+$Flag_Sleep_Kluge ||= 0;
 
 if ( !@ARGV or ( @ARGV == 1 and $ARGV[0] eq '-' ) ) {
   @ARGV = <STDIN>;
@@ -110,7 +91,24 @@ my $event_listener = $do_events ? '\include "event-listener.ly"' : "";
 
 my $rel_str = defined $relative ? '\relative ' . $relative : '';
 
-my $ly_template = <<"END_TMPL";
+my ( $repeat_midi, $repeat_score, $score_bar );
+if ( $repeats > 1 ) {
+  $repeat_midi  = "\\repeat unfold $repeats ";
+  $repeat_score = "\\repeat volta $repeats ";
+  $score_bar    = '';
+} else {
+  $repeat_midi  = '';
+  $repeat_score = '';
+  $score_bar    = qq{\\bar "|."};
+}
+
+# Assume they want both the score and MIDI bits on standard out
+if ($Flag_Show_Code) {
+  $Flag_Generate_Score = 1;
+  $Flag_No_MIDI        = 0;
+}
+
+my $lilypond_input = <<"END_TMPL_HEAD";
 \\version "$LILYPOND_VERSION"
 \\include "articulate.ly"
 $event_listener
@@ -120,100 +118,138 @@ $event_listener
 themusic = $rel_str {
   @ARGV
 }
+END_TMPL_HEAD
+
+if ($Flag_Generate_Score) {
+  $lilypond_input .= <<"END_TMPL_LAYOUT";
 \\score {
   \\new $staff << $rel_str {
-% only in lilypond 2.16
-%   \\accidentalStyle "neo-modern"
+    \\accidentalStyle "neo-modern"
     \\set Staff.instrumentName = #"$instrument"
     \\tempo 4=$tempo
     $partial
-    \\repeat volta $repeats { \\themusic }
+    $repeat_score { \\themusic }
+    $score_bar
   } >>
   \\layout { }
 }
+END_TMPL_LAYOUT
+}
 
+unless ($Flag_No_MIDI) {
+  $lilypond_input .= <<"END_TMPL_MIDI";
 \\score {
   \\new Staff << $rel_str {
     \\set Staff.midiInstrument = #"$instrument"
     $pre_art
     \\tempo 4=$tempo
     $partial
-    \\repeat unfold $repeats { \\themusic }
+    $repeat_midi { \\themusic }
     $post_art
   } >>
   \\midi { }
 }
-END_TMPL
-
-$src_fh->autoflush(1);
-print $src_fh $ly_template;
-
-my $exit_status = 0;
-
-# NOTE Lilypond will add suffix to output, hopefully the same suffix
-# used by this script (glob for it if it can be dynamic?).
-#
-# Just system() would be nice, but lilypond spams the terminal, so hide
-# the noise by default. Might want to collect stderr for inspection if
-# things do go awry, but that's more work.
-print $src_fname, "\n";
-my $lypid;
-try {
-  my ( $wtr, $rdr, $err );
-  $lypid =
-    open3( $wtr, $rdr, $err, @LILYPOND, "--output=$src_fname", $src_fname );
-  while (<$rdr>) {
-    print if $verbose;
-  }
+END_TMPL_MIDI
 }
-catch {
-  die "@LILYPOND failed: $_";
+
+if ($Flag_Show_Code) {
+  print $lilypond_input;
+  exit 0;
+}
+
+my $work_dir = File::Spec->tmpdir;
+chdir $work_dir or die "$Prog_Name: could not chdir() to '$work_dir': $!\n";
+
+# NOTE a dedicated directory for output would be safer on a shared tmp dir
+# system, as I am unsure of how well lilypond defends against /tmp attacks. I
+# use a TMPDIR that is not the system one.
+my $tmp_ly = File::Temp->new(
+  DIR      => $work_dir,
+  SUFFIX   => '.ly',
+  TEMPLATE => "$Prog_Name.XXXXXXXXXX",
+  UNLINK   => 0
+);
+$tmp_ly->print($lilypond_input);
+$tmp_ly->flush;
+$tmp_ly->sync;
+
+my $ly_filename = $tmp_ly->filename;
+( my $score_filename = $ly_filename ) =~ s/\.ly/\.pdf/;
+( my $midi_filename  = $ly_filename ) =~ s/\.ly/\.midi/;
+
+print $ly_filename, "\n";
+
+my ( $stdout, $stderr );
+
+eval {
+  my $stdin;
+  push @Lilypond_Cmd, $ly_filename;
+  run3 \@Lilypond_Cmd, \$stdin, \$stdout, \$stderr;
 };
-waitpid $lypid, 0;
+if ($@) {
+  chomp $@;
+  die "$Prog_Name: run3() of '@Lilypond_Cmd' failed: $@\n";
+}
+if ( $? >> 8 != 0 ) {
+  warn "$Prog_Name: non-zero exit from '@Lilypond_Cmd'\n";
+  # something awry, so show everything lilypond said for debugging
+  warn $stderr;
+  print $stdout;
+  exit $?;
+}
+print $stdout if $Flag_Verbose;
 
-if ($do_open) {
-  die "error: score not created: $score_fname\n" unless -f $score_fname;
-  system( @SCORE_READER, $score_fname );
+if ($Flag_Show_Score) {
+  die "error: score not created: $score_filename\n" unless -f $score_filename;
+
+  local $SIG{CHLD} = 'IGNORE';
+  if ( fork() ) {
+    exec( @Score_Reader, $score_filename )
+      or die "$Prog_Name: could not exec score reader '@Score_Reader': $!\n";
+  }
 }
 
-if ( !$skip_midi ) {
-  die "error: MIDI not created: $midi_fname\n" unless -f $midi_fname;
-  try {
-    my ( $wtr, $rdr, $err );
-    my $midipid = open3( $wtr, $rdr, $err, @MIDI_PLAYER, $midi_fname );
-    while (<$rdr>) {
-      print if $verbose;
-    }
-    waitpid $midipid, 0;
+unless ($Flag_No_MIDI) {
+  die "error: MIDI not created: $midi_filename\n" unless -f $midi_filename;
+
+  my $stdin;
+  push @MIDI_Player, $midi_filename;
+  run3 \@MIDI_Player, \$stdin, \$stdout, \$stderr;
+  if ($@) {
+    chomp $@;
+    die "$Prog_Name: run3() of '@MIDI_Player' failed: $@\n";
   }
-  catch {
-    die "@MIDI_PLAYER failed: $_";
+  if ( $? >> 8 != 0 ) {
+    warn "$Prog_Name: non-zero exit from '@MIDI_Player'\n";
+    warn $stderr;
+    print $stdout;
+    exit $?;
   }
+  print $stdout if $Flag_Verbose;
 }
 
-if ( !$save_layout ) {
-  # Finale.app can blow up if file unlinked from underneath it? So need
-  # this delay, or save the layout option set.
-  sleep int $sleep_kluge if !$save_layout and $sleep_kluge > 0;
+if ( !$Flag_Generate_Score ) {
+  # Due to some applications being slow to start and thus complaining or
+  # blowing up should say the MIDI be unlinked from out underneath them.
+  sleep $Flag_Sleep_Kluge if $Flag_Sleep_Kluge > 0;
+  unlink $ly_filename, $midi_filename, $score_filename;
 
-  unlink $midi_fname;
-  unlink $src_fname;
-  unlink "$src_fname.$_" for @CLEANUP_SUFFIX;
 } else {
-  # Might want to share the files, so avoid whoops-perm-denied-chmod-
-  # a+r phase of that process.
-  chmod 0644, $midi_fname, $src_fname, map { "$src_fname.$_" } @CLEANUP_SUFFIX;
+  # Might want to share the files, so avoid the whoops-perm-denied-chmod-
+  # a+r phase of that process, given that tmp files otherwise have locked-
+  # down perms.
+  chmod 0644, $ly_filename, $midi_filename, $score_filename;
 }
 
-exit $exit_status;
+exit 0;
 
 ########################################################################
 #
 # SUBROUTINES
 
-sub print_help {
+sub emit_help {
   warn <<"END_HELP";
-Usage: $0 [options] "lilypond input" "more input" ...
+Usage: $0 [options] "lilypond code ..."
 
 The lilypond input will likely need to be quoted as lilypond input may
 clash with various shell metacharacters.
@@ -227,6 +263,7 @@ clash with various shell metacharacters.
 
   --layout|l      Save the MIDI and other various files.
   --open          Show the score in some sort of viewer.
+  --show-code     Print the lilypond data to stdout and exit.
   --silent|s      Skip generating MIDI.
   --sleep|S       Sleep before unlink of various tmp files.
   --verbose       Show noise from lilypond, MIDI player.
@@ -249,23 +286,22 @@ ly-fu - play or display lilypond snippets
   $ ly-fu  -i=trumpet --open "c8 g'4 c,8 g'4 c,8 g'2"
   $ echo c e g | ly-fu -
 
-This utility assumes Mac OS X and timidity by default; set the
-MIDI_EDITOR and SCORE_VIEWER environment variables, or adjust this code
-as necessary. C<zathura> is a handy PDF viewer, if available:
+Or, to instead save the generated lilypond somewhere:
 
-  function open {
-    zathura "$@" 2>/dev/null &|
-  }
+  $ ly-fu --show-code e e e c1 > masterpiece.ly
+
+This utility assumes Mac OS X and timidity by default; set the MIDI_EDITOR and
+SCORE_VIEWER environment variables, or adjust this code as necessary.
 
 =head1 DESCRIPTION
 
-Plays and possibly displays lilypond snippets entered at the command
-line. The C<MIDI_EDITOR> environment variable should be set to a program
-that can play MIDI files, and the C<SCORE_VIEWER> optionally set to a
-PDF viewer. (Or edit the source code as necessary.)
+Plays and possibly displays lilypond snippets entered at the command line. The
+C<MIDI_EDITOR> environment variable should be set to a program that can play
+MIDI files, and the C<SCORE_VIEWER> optionally set to a PDF viewer. (Or edit
+the source code as necessary.)
 
-L<http://www.lilypond.org/> and in particular the Learning and Notation
-manuals should be consulted to understand the lilypond syntax.
+L<http://www.lilypond.org/> and in particular the Learning and Notation manuals
+should be consulted to understand the lilypond syntax.
 
 =head1 OPTIONS
 
@@ -301,14 +337,23 @@ Specify what note the input is relative to.
 
 How many times to repeat the (non-B<partial>) input.
 
+=item B<--rhythmic-staff>
+
+Make the staff a lilypond C<RhythmicStaff> instead of the usual one.
+
+=item B<--show-code>
+
+Prints the generated lilypond data to standard out, then exits the program. The
+score is not shown, nor the music played.
+
 =item B<--silent>
 
 Do not play the MIDI.
 
 =item B<--sleep>=I<seconds>
 
-Kluge sleep before unlinking temporary files (if C<SCORE_VIEWER> is
-slow, or so forth).
+Kluge sleep before unlinking temporary files (might be handy if C<SCORE_VIEWER>
+is slow to start).
 
 =item B<--tempo>=I<tempo>
 
@@ -322,24 +367,22 @@ Show output from lilypond and the MIDI player.
 
 =head1 FILES
 
+NOTE This program makes heavy use of temporary files. On a shared system, the
+lilypond generated output files might introduce /tmp security problems
+(arbitrary file clobber or unlink against the user running the code). These can
+be avoided by employing a private temporary directory, for example by pointing
+the C<TMPDIR> environment variable to such a directory.
+
 A ZSH completion script is available in the C<zsh-compdef/> directory of 
 the L<App::MusicTools> distribution. Install this to a C<$fpath> 
 directory.
 
 =head1 BUGS
 
-=head2 Reporting Bugs
-
-If the bug is in the latest version, send a report to the author.
-Patches that fix problems or add new features are welcome.
+If the bug is in the latest version, send a report to the author. Patches that
+fix problems or add new features are welcome.
 
 L<http://github.com/thrig/App-MusicTools>
-
-=head2 Known Issues
-
-STDERR hidden by default, so if you feed lilypond bad input, you will
-not see or hear anything, besides the PDF failing to open, or the music
-failing to play. Hence the I<--verbose> flag.
 
 =head1 SEE ALSO
 
@@ -351,10 +394,10 @@ Jeremy Mates
 
 =head1 COPYRIGHT
 
-Copyright (C) 2012-2013 by Jeremy Mates
+Copyright (C) 2012-2014 by Jeremy Mates
 
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself, either Perl version 5.16 or, at
-your option, any later version of Perl 5 you may have available.
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself, either Perl version 5.16 or, at your option, any
+later version of Perl 5 you may have available.
 
 =cut

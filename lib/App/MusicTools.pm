@@ -6,7 +6,7 @@ use 5.010000;
 use strict;
 use warnings;
 
-our $VERSION = '1.18';
+our $VERSION = '1.19';
 
 1;
 __END__
@@ -79,8 +79,8 @@ conventions (e.g. fis for F sharp, ees for E flat, etc.)
 
 =item *
 
-C<ly-fu> expects that a MIDI player and PDF viewer are available on the
-system. Env variables may need to be set or the source code tweaked as
+C<ly-fu> expects that a MIDI player and PDF viewer are available on the system.
+Environment variables will likely need to be set or the source code tweaked as
 necessary.
 
 =item *
@@ -108,7 +108,7 @@ thrig - Jeremy Mates (cpan:JMATES) C<< <jmates at cpan.org> >>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2012-2013 by Jeremy Mates
+Copyright (C) 2012-2014 by Jeremy Mates
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself, either Perl version 5.16 or, at
