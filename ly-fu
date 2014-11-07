@@ -177,7 +177,7 @@ my $ly_filename = $tmp_ly->filename;
 ( my $score_filename = $ly_filename ) =~ s/\.ly/\.pdf/;
 ( my $midi_filename  = $ly_filename ) =~ s/\.ly/\.midi/;
 
-print $ly_filename, "\n";
+print $ly_filename, "\n" if $Flag_Generate_Score;
 
 my ( $stdout, $stderr );
 
