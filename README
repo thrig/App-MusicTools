@@ -4,28 +4,32 @@ To install this module, use CPAN, for example:
 
   cpanm App::MusicTools
 
-For the current release, see:
+For the current source tree, see:
 
 http://github.com/thrig/App-MusicTools
 
-which can be installed by cloning that directory then running `cpanm .`
-therein. However, if installing from the github directory, the current
-versions of my various other music modules (Music::AtonalUtil,
-Music::Chord::Positions, Music::LilyPondUtil, and Music::Tension) should
-also be installed from github. This can be done with the script included
-in this distribution thusly:
+which can be built and installed via:
 
-  $ sh App-MusicTools/install-music-modules
+  perl Makefile.PL
+  make
+  make test
+  make install
+
+However, if installing from the github directory, the current versions of
+various other music modules may also need be installed from github. This can be
+done with the script included in this distribution thusly:
+
+  sh App-MusicTools/install-music-modules
 
 DEPENDENCIES
 
-Some knowledge of lilypond and music theory may well benefit the user.
-See the Makefile.PL for module dependencies.
+Some knowledge of lilypond and music theory may well benefit the user. See the
+Makefile.PL for module dependencies.
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2012-2013 Jeremy Mates
+Copyright (C) 2012-2015 Jeremy Mates
 
-This library is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself, either Perl version 5.16 or, at
-your option, any later version of Perl 5 you may have available.
+This library is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself, either Perl version 5.16 or, at your option, any
+later version of Perl 5 you may have available.

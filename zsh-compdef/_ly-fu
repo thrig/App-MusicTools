@@ -139,6 +139,7 @@ _arguments \
   '--events[emit lilypond event data]' \
   '(- *)--help[display help]' \
   '--instrument=[instrument]:instrument:_values "instruments" $lyinstruments' \
+  '--language=[lilypond language]:language:(nederlands catalan deutsch english espanol italiano norsk portugues suomi svenska vlaams)' \
   '--layout[save layout]' \
   '--open[display layout]' \
   '--partial=[leading expression]:expression' \

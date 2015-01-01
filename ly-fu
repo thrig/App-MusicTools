@@ -57,6 +57,7 @@ GetOptions(
   'events'           => \my $do_events,
   'help|h|?'         => \&emit_help,
   'instrument|i=s'   => \$instrument,
+  'language=s'       => \my $language,
   'layout|l'         => \my $Flag_Generate_Score,
   'open'             => \my $Flag_Show_Score,
   'partial|p=s'      => \$partial,
@@ -76,6 +77,8 @@ $Flag_Generate_Score = 1 if $Flag_Show_Score;
 push @Lilypond_Cmd, '--pdf' if $Flag_Generate_Score;
 
 $Flag_Sleep_Kluge ||= 0;
+
+$language //= 'nederlands';
 
 if ( !@ARGV or ( @ARGV == 1 and $ARGV[0] eq '-' ) ) {
   @ARGV = <STDIN>;
@@ -111,6 +114,7 @@ if ($Flag_Show_Code) {
 my $lilypond_input = <<"END_TMPL_HEAD";
 \\version "$LILYPOND_VERSION"
 \\include "articulate.ly"
+\\language "$language"
 $event_listener
 \\header {
   title = "ly-fu generated output"
@@ -317,6 +321,16 @@ Assume lilypond absolute notation.
 
 Set MIDI instrument (see lilypond docs and ZSH compdef script).
 
+=item B<--language>=I<language>
+
+Specify the lilypond language to use, by default the C<lilypond> default of
+C<nederlands>. If using note names from L<Music::PitchNum::German>, 
+
+  ... | ly-fu --language=deutsch ...
+
+may be of some use. "Note names in other languages" in the lilypond notation
+reference contains the full list of supported languages.
+
 =item B<--layout>
 
 Save the MIDI and other various files (they are unlinked by default).
@@ -394,7 +408,7 @@ Jeremy Mates
 
 =head1 COPYRIGHT
 
-Copyright (C) 2012-2014 by Jeremy Mates
+Copyright (C) 2012-2015 by Jeremy Mates
 
 This program is free software; you can redistribute it and/or modify it under
 the same terms as Perl itself, either Perl version 5.16 or, at your option, any

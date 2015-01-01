@@ -11,6 +11,8 @@
 # XXX improve emit_pitch_set (returns a string, so caller can then do
 # what it will -- or have LilyPondUtil sub that knows how to format a
 # pitch set? (among other possible code cleanups/simplifications)
+#
+# (Or more likely scrap and rewrite from scratch, eesh.)
 
 use strict;
 use warnings;
@@ -246,7 +248,9 @@ sub args2pitchset {
   } else {
     for my $arg (@args) {
       for my $p ( $arg =~ /(-?\d+|\w+)/g ) {
-        push @$pitch_set, $Lyu->notes2pitches($p);
+        # NOTE this tosses out 's' or 'r' silent or rest stuff as those do not
+        # matter for the mostly atonal routines this code handles.
+        push @$pitch_set, grep defined, $Lyu->notes2pitches($p);
       }
     }
   }

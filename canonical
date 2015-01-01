@@ -458,6 +458,12 @@ in F# minor).
     gis8 ais b4 b ais8 gis ais bis cis4. b8 a8 cis b a gis2 fis
   r4 cis dis e1 dis8 f fis4 fis f8 dis f g gis4. fis8 e8 gis fis e dis2 cis
 
+If the phrase is not in, say, C-Major, be sure to use the B<--sp> flag to
+indicate that. This following line transposes the result up by a major third:
+
+  $ canonical --flats modal --undef=r --rel=des --sp=des --transpose=4 \
+    "des8 r des r des c16 bes aes8 ges aes8 ges16 f ees8 des8"
+
 =head1 FILES
 
 A ZSH completion script is available in the C<zsh-compdef/> directory of 

@@ -1,8 +1,9 @@
 #!perl
 
-# Fits a sequence of lilypond notes to a frequency chart of roman
-# numeral progressions starting on each root pitch of the 12-tone scale.
-# This may reveal what keys a sequence of notes likely belong to.
+# Fits a sequence of lilypond notes to a frequency chart of roman numeral
+# progressions starting on each root pitch of the 12-tone scale. This may
+# reveal what keys a sequence of notes likely belong to. This script is
+# distributed with the App::MusicTools perl module.
 #
 # Run perldoc(1) on this file for additional documentation.
 
@@ -67,25 +68,25 @@ harmonic-fit - fits melody to common-practice progressions
 =head1 SYNOPSIS
 
   $ harmonic-fit c g | head -3
-  84	c
-  27	g
-  8	f
+  84    c
+  27    g
+  8     f
 
   $ atonal-util gen_melody
   ees f e d g des c b aes a ges bes
   $ harmonic-fit ees f e d g des c b aes a ges bes
-  189	g
-  95	c
-  71	d
-  60	a
-  53	f
-  48	dis
-  40	cis
-  40	e
-  37	b
-  30	ais
-  22	fis
-  18	gis
+  189   g
+  95    c
+  71    d
+  60    a
+  53    f
+  48    dis
+  40    cis
+  40    e
+  37    b
+  30    ais
+  22    fis
+  18    gis
 
 =head1 DESCRIPTION
 
@@ -154,11 +155,11 @@ Jeremy Mates
 
 =head1 COPYRIGHT
 
-Copyright (C) 2013 by Jeremy Mates
+Copyright (C) 2013,2015 by Jeremy Mates
 
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself, either Perl version 5.16 or, at
-your option, any later version of Perl 5 you may have available.
+This program is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself, either Perl version 5.16 or, at your option, any
+later version of Perl 5 you may have available.
 
 =cut
 
