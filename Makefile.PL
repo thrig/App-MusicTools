@@ -41,8 +41,8 @@ my %params = (
     'Test::Pod'           => 1.22,
     'lib'                 => 0,
   },
-  # List everything due to certain linux vendors chopping up core Perl in
-  # violation of the terms of the license.
+  # List everything due to certain linux vendors chopping up core perl, or
+  # otherwise to detect and fail if being installed to a broken perl install.
   PREREQ_PM => {
     Carp                      => 0,
     'File::Spec'              => 0,
@@ -78,7 +78,7 @@ my %params = (
   },
 
   dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-  clean => { FILES    => 'Music-Counterpoint-*' },
+  clean => { FILES    => 'App-MusicTools-*' },
 );
 
 ( my $mm_version = ExtUtils::MakeMaker->VERSION(
