@@ -17,6 +17,7 @@ t/atonal-util.t
 t/canonical.t
 t/harmonic-fit.t
 t/ly-fu.t
+t/pod-coverage.t
 t/pod.t
 t/rules
 t/scalemogrifier.t
