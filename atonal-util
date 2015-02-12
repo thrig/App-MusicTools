@@ -24,7 +24,7 @@ use Music::AtonalUtil   ();
 use Music::LilyPondUtil ();
 use Music::Scala        ();
 use Music::Scales qw/get_scale_nums/;
-use Music::Tempo qw/bpm_to_ms/;
+use Music::Tempo qw/bpm_to_ms ms_to_bpm/;
 use Music::Tension::Cope ();
 # untested with --tension
 #use Music::Tension::PlompLevelt ();
@@ -73,6 +73,7 @@ my %modes = (
   tcis                   => \&tcis,
   tcs                    => \&tcs,
   tension                => \&tension,
+  time2notes             => \&time2notes,
   transpose              => \&transpose,
   transpose_invert       => \&transpose_invert,
   variances              => \&variances,
@@ -284,7 +285,7 @@ sub basic {
 
   if ($Flag_Tension) {
     _init_tension();
-    my ($sum, $min, $max, undef) = $Tension->vertical($pset);
+    my ( $sum, $min, $max, undef ) = $Tension->vertical($pset);
     printf "%.03f  %.03f  %.03f\n", $sum, $min, $max;
   }
 }
@@ -1245,6 +1246,33 @@ sub tension {
     join( ',', @$t_ref );
 }
 
+sub time2notes {
+  my (@args) = @_;
+  my $beats  = 4;
+  my $tempo  = 60;
+  GetOptionsFromArray(
+    \@args,
+    'beats=i' => \$beats,
+    'tempo=i' => \$tempo,
+  ) or print_help();
+
+  for my $durms (@args) {
+    die "argument $durms not a number\n" if !looks_like_number $durms;
+    my $dur = 1 / ( ms_to_bpm( $durms, $beats ) / $tempo );
+    # Cheat with lilypond multiplier syntax; breaking things down into c4~ c16.
+    # would of course be more work.
+    $dur = 100 * sprintf "%.2f", $dur;
+    print "c$beats*$dur/100\n";
+  }
+
+  if ( @args > 1 ) {
+    my $total_ms = sum(@args);
+    my $dur = 1 / ( ms_to_bpm( $total_ms, $beats ) / $tempo );
+    $dur = 100 * sprintf "%.2f", $dur;
+    print "= c$beats*$dur/100\n";
+  }
+}
+
 sub transpose {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts, 'transpose|n=s' => \my $t, )
@@ -1604,6 +1632,8 @@ for a dotted quarter note, or C<8..*2/3> for a double-dotted eighth note
 of a triplet) to time, which is shown in a condensed form, unless I<--ms>
 is supplied, in which case the duration is shown in milliseconds.
 
+See also B<time2notes>, which reverses millisecond values.
+
 =head2 B<pcs2forte> I<pitch_set>
 
 Given a pitch set, returns the corresponding Forte Number, if any.
@@ -1695,6 +1725,22 @@ Probably easier to use the B<invariants> mode to list the full results.
 Returns the average, min, max, and tension values for all the tensions
 in the passed pitch set, from the first notes in the set up to the last.
 Tensions calculated via L<Music::Tension::Cope>.
+
+=head2 B<time2notes> I<--tempo=bpm> I<--beats=b> I<milliseconds...>
+
+Converts millisecond values to note durations. Reverse of B<notes2time> with
+the I<--ms> flag. These two can be used to convert notes between different
+tempos, for example to effect a fermata delay where tempo changes in the MIDI
+are not possible:
+
+  IN_T=39
+  OUT_T=60
+  atonal-util time2notes --tempo=$OUT_T \
+    $(atonal-util notes2time --ms --tempo=$IN_T c4)
+
+This would convert a quarter note at a tempo of 39 to the equivalent under the
+tempo of 60. The output value presently uses the C<lilypond> multiplier format
+to represent the new duration.
 
 =head2 B<transpose> I<--transpose=integer_or_note> I<pitch_set>
 
