@@ -536,7 +536,10 @@ sub findall {
   @excludes{ $Lyu->notes2pitches( split /[, ]+/, $excludes ) } = ()
     if defined $excludes;
   $root_pitch = $Lyu->notes2pitches($root_pitch) if defined $root_pitch;
-  my $fn_re = '^[' . join( '', parse_range($desired_forte_nums) ) . ']$';
+  my $fn_re;
+  if ( defined $desired_forte_nums ) {
+    $fn_re = '^[' . join( '', parse_range($desired_forte_nums) ) . ']$';
+  }
 
   my $fnums = $Atu->fnums;
   for my $fnum ( sort keys %$fnums ) {
