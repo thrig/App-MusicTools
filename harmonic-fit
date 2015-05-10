@@ -31,11 +31,19 @@ my $lookup = $json->decode(
   do { local $/; readline $fh }
 );
 
+die "Usage: harmonic-fit [--chart=chart-file] lilypond-notes...\n" if !@ARGV;
+
 my @melody;
 for my $input (@ARGV) {
   push @melody, grep { defined && length > 0 } split /\s+/, $input;
 }
+
 my @pitches = $lyu->notes2pitches( \@melody );
+
+if (!@pitches) {
+  warn "could not parse any pitches\n";
+  die "Usage: harmonic-fit [--chart=chart-file] lilypond-notes...\n";
+}
 
 my @matches;
 
