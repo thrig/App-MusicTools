@@ -35,50 +35,51 @@ use Try::Tiny;
 my $PROG_NAME = basename($0);
 
 my %modes = (
-  basic                  => \&basic,
-  beats2set              => \&beats2set,
-  circular_permute       => \&circular_permute,
-  combos                 => \&combos,
-  complement             => \&complement,
-  equivs                 => \&equivs,
-  findall                => \&findall,
-  findin                 => \&findin,
-  fnums                  => \&fnums,
-  forte2pcs              => \&forte2pcs,
-  freq2pitch             => \&freq2pitch,
-  gen_melody             => \&gen_melody,
-  half_prime_form        => \&half_prime_form,
-  interval_class_content => \&interval_class_content,
-  intervals2pcs          => \&intervals2pcs,
-  invariance_matrix      => \&invariance_matrix,
-  invariants             => \&invariants,
-  invert                 => \&invert,
-  ly2pitch               => \&ly2pitch,
-  ly2struct              => \&ly2struct,
-  multiply               => \&multiply,
-  normal_form            => \&normal_form,
-  notes2time             => \&notes2time,
-  pcs2forte              => \&pcs2forte,
-  pcs2intervals          => \&pcs2intervals,
-  pitch2freq             => \&pitch2freq,
-  pitch2intervalclass    => \&pitch2intervalclass,
-  pitch2ly               => \&pitch2ly,
-  prime_form             => \&prime_form,
-  recipe                 => \&recipe,
-  retrograde             => \&retrograde,
-  rotate                 => \&rotate,
-  set2beats              => \&set2beats,
-  set_complex            => \&set_complex,
-  subsets                => \&subsets,
-  tcis                   => \&tcis,
-  tcs                    => \&tcs,
-  tension                => \&tension,
-  time2notes             => \&time2notes,
-  transpose              => \&transpose,
-  transpose_invert       => \&transpose_invert,
-  variances              => \&variances,
-  whatscalesfit          => \&whatscalesfit,
-  zrelation              => \&zrelation,
+  adjacent_interval_content => \&adjacent_interval_content,
+  basic                     => \&basic,
+  beats2set                 => \&beats2set,
+  circular_permute          => \&circular_permute,
+  combos                    => \&combos,
+  complement                => \&complement,
+  equivs                    => \&equivs,
+  findall                   => \&findall,
+  findin                    => \&findin,
+  fnums                     => \&fnums,
+  forte2pcs                 => \&forte2pcs,
+  freq2pitch                => \&freq2pitch,
+  gen_melody                => \&gen_melody,
+  half_prime_form           => \&half_prime_form,
+  interval_class_content    => \&interval_class_content,
+  intervals2pcs             => \&intervals2pcs,
+  invariance_matrix         => \&invariance_matrix,
+  invariants                => \&invariants,
+  invert                    => \&invert,
+  ly2pitch                  => \&ly2pitch,
+  ly2struct                 => \&ly2struct,
+  multiply                  => \&multiply,
+  normal_form               => \&normal_form,
+  notes2time                => \&notes2time,
+  pcs2forte                 => \&pcs2forte,
+  pcs2intervals             => \&pcs2intervals,
+  pitch2freq                => \&pitch2freq,
+  pitch2intervalclass       => \&pitch2intervalclass,
+  pitch2ly                  => \&pitch2ly,
+  prime_form                => \&prime_form,
+  recipe                    => \&recipe,
+  retrograde                => \&retrograde,
+  rotate                    => \&rotate,
+  set2beats                 => \&set2beats,
+  set_complex               => \&set_complex,
+  subsets                   => \&subsets,
+  tcis                      => \&tcis,
+  tcs                       => \&tcs,
+  tension                   => \&tension,
+  time2notes                => \&time2notes,
+  transpose                 => \&transpose,
+  transpose_invert          => \&transpose_invert,
+  variances                 => \&variances,
+  whatscalesfit             => \&whatscalesfit,
+  zrelation                 => \&zrelation,
 );
 
 my ( $Flag_Flat, $Flag_Lyout, $Flag_Quiet, $Flag_Tension );
@@ -104,7 +105,7 @@ GetOptionsFromArray(
   @Std_Opts,
   'help'              => \&print_help,
   'listmodes'         => sub { print "$_\n" for sort keys %modes; exit 0 },
-  'scaledegrees|sd=s' => \my $scale_degrees,
+  'scaledegrees|sd=i' => \my $scale_degrees,
 ) or print_help();
 $scale_degrees //= 12;
 my $mode = shift;
@@ -235,6 +236,17 @@ sub _init_tension {
   }
 }
 
+sub adjacent_interval_content {
+  my (@args) = @_;
+  GetOptionsFromArray( \@args, @Std_Opts, 'scaledegrees|sd=i' => \my $sd );
+  $Atu->scale_degrees($sd) if $sd;
+  emit_pitch_set(
+    scalar $Atu->adjacent_interval_content( args2pitchset(@args) ),
+    lyflag => 0,
+    rs     => '',
+  );
+}
+
 sub args2pitchset {
   my (@args) = @_;
 
@@ -293,10 +305,10 @@ sub basic {
 # Converts [x..x..x...x.x...] form to (0,3,6,10,12) set form
 sub beats2set {
   my (@args) = @_;
-  GetOptionsFromArray( \@args, @Std_Opts, 'scaledegrees|sd=s' => \my $sd, )
+  GetOptionsFromArray( \@args, @Std_Opts, 'scaledegrees|sd=i' => \my $sd, )
     or print_help();
   if ($sd) {
-    $Atu = Music::AtonalUtil->new( DEG_IN_SCALE => $sd );
+    $Atu->scale_degrees($sd);
   } else {
     $sd = $Atu->scale_degrees;
   }
@@ -312,7 +324,6 @@ sub beats2set {
     }
     $i++;
   }
-  # E_NO_RAPPING
   die "error: beats in input exceeds available ($i > $sd)\n" if $i > $sd;
   if ( $i < $sd ) {
     warn "notice: incomplete beats ($i < $sd)\n" unless $Flag_Quiet;
@@ -717,7 +728,8 @@ sub half_prime_form {
 
 sub interval_class_content {
   my (@args) = @_;
-  GetOptionsFromArray( \@args, @Std_Opts );
+  GetOptionsFromArray( \@args, @Std_Opts, 'scaledegrees|sd=i' => \my $sd );
+  $Atu->scale_degrees($sd) if $sd;
   emit_pitch_set(
     scalar $Atu->interval_class_content( args2pitchset(@args) ),
     lyflag => 0,
@@ -1170,7 +1182,7 @@ sub rotate {
 
 sub set2beats {
   my (@args) = @_;
-  GetOptionsFromArray( \@args, @Std_Opts, 'scaledegrees|sd=s' => \my $sd, )
+  GetOptionsFromArray( \@args, @Std_Opts, 'scaledegrees|sd=i' => \my $sd, )
     or print_help();
   if ($sd) {
     $Atu = Music::AtonalUtil->new( DEG_IN_SCALE => $sd );

@@ -17,12 +17,16 @@ use Util;
 # Command to run, expected output lines (write a custom test, below, if
 # this model does not suffice).
 #
-# NOTE most of these tests written several months after worked out code,
-# so might just be confirming bad behavior; if in doubt, double check
-# things against some other atonal software or documentation! Also, the
-# tests are in no way complete, so more may be necessary to properly
-# cover various edge cases or options to the various modes.
+# NOTE most of these tests written several months after the code was
+# worked out, so might just be confirming bad behavior; if in doubt,
+# double check things against some other atonal software or
+# documentation! Also, the tests are in no way complete, so more may be
+# necessary to properly cover various edge cases or options to the
+# various modes.
 my @tests = (
+  { cmd      => [qw{./atonal-util --sd=16 adjacent_interval_content 0 3 6 10 12}],
+    expected => ['01220000'],
+  },
   { cmd      => [qw{./atonal-util basic 0 4 7}],
     expected => [ '0,3,7', '001110', '3-11', "0,4,7\thalf_prime" ],
   },

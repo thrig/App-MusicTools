@@ -22,12 +22,13 @@ _atonal-util() {
     '--ly[emit notes not pitch numbers]' \
     '(- *)--listmodes[show available modes]' \
     '--rs=[record separator]:sep:' \
-    {--sd,--scaledegrees}'=[degrees in the scale]:scaledegrees:' \
+    {--sd,--scaledegrees}'=[degrees in the scale]:scaledegrees:(12 16)' \
     '*::atonal-util command:_atonalutil_mode'
 }
 
 _atonalutil_mode() {
   _atonalutil_modes=(
+    'adjacent_interval_content:AIC' \
     'basic:prime_form and interval_class_content info' \
     'beats2set:rhythmic beats to set class' \
     'circular_permute:all permutations of pitch set' \
@@ -91,6 +92,12 @@ _atonalutil_mode() {
 }
 
 # XXX too much copy-n-paste hereafter
+_atonalutil_adjacent_interval_content() {
+  _arguments -s \
+    '1:noteorfnum:_values "forte number or pitches" $forte_numbers $pitches' \
+    {--sd,--scaledegrees}'=[degrees in the scale]:scaledegrees:(12 16)' \
+    '*:note:_values "pitches" $pitches'
+}
 _atonalutil_basic() {
   _arguments -s \
     '(--noflats)--flats[print notes as flats]' \
@@ -102,7 +109,7 @@ _atonalutil_basic() {
 }
 _atonalutil_beats2set() {
   _arguments -s \
-    {--sd,--scaledegrees}'=[beats per measure]:scaledegrees:' \
+    {--sd,--scaledegrees}'=[beats per measure]:scaledegrees:(12 16)' \
     '--rs=[record separator]:sep:' \
     '*:beatornot:(x .)'
 }
@@ -203,6 +210,7 @@ _atonalutil_half_prime_form() {
 _atonalutil_interval_class_content() {
   _arguments -s \
     '1:noteorfnum:_values "forte number or pitches" $forte_numbers $pitches' \
+    {--sd,--scaledegrees}'=[degrees in the scale]:scaledegrees:(12 16)' \
     '*:note:_values "pitches" $pitches'
 }
 _atonalutil_intervals2pcs() {
@@ -349,7 +357,7 @@ _atonalutil_rotate() {
 }
 _atonalutil_set2beats() {
   _arguments -s \
-    {--sd,--scaledegrees}'=[beats per measure]:scaledegrees:' \
+    {--sd,--scaledegrees}'=[beats per measure]:scaledegrees:(12 16)' \
     '1:noteorfnum:_values "forte number or pitches" $forte_numbers $pitches' \
     '*:note:_values "pitches" $pitches'
 }
