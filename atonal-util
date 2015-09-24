@@ -945,23 +945,39 @@ sub normal_form {
 }
 
 sub notes2time {
-  my (@args) = @_;
-  my $beats  = 4;
-  my $tempo  = 60;
+  my (@args)   = @_;
+  my $beats    = 4;
+  my $tempo    = 60;
+  my $fraction = 1;
   GetOptionsFromArray(
     \@args,
-    'beats=i' => \$beats,
-    'ms!'     => \my $in_ms,
-    'tempo=i' => \$tempo,
+    'beats=i'    => \$beats,
+    'ms!'        => \my $in_ms,
+    'tempo=i'    => \$tempo,
+    'fraction=s' => \$fraction,
   ) or print_help();
+
+  if ( !looks_like_number($fraction) ) {
+    if ( $fraction =~ m#^(\d+)/(\d+)$# ) {
+      $fraction = $1 / $2;
+    } else {
+      die "unknown fraction: $fraction (expect 2/3 or such)\n";
+    }
+  }
 
   my @durations;
   for my $notespec ( map { split ' ' } @args ) {
     if ( $notespec =~
-      m{ (?<dur>\d+) (?<dots>[.]+)? (?:\*(?<rnumer>\d+)/(?<rdenom>\d+))? }x ) {
+      m{ (?<dur>\d+) (?<dots>[.]{1,10})? (?:\*(?<rnumer>\d+)/(?<rdenom>\d+))? }x ) {
       my $dur   = $beats / $+{dur};
       my $dots  = exists $+{dots} ? length $+{dots} : 0;
       my $ratio = exists $+{rnumer} ? $+{rnumer} / $+{rdenom} : 1;
+
+      # Arbitrary limit to just nine dots, which is about three times longer
+      # than I think I've ever seen in notation.
+      die "error: too many dots in dotted note\n" if $dots > 9;
+
+      $dur *= $fraction;
       $dur *= $ratio;
       push @durations, 2 * $dur - ( $dur / 2**$dots );
     } elsif ( !@durations ) {
@@ -1644,8 +1660,10 @@ given pitch set.
 
 Converts note durations (for example C<4> for a quarter note or C<4.>
 for a dotted quarter note, or C<8..*2/3> for a double-dotted eighth note
-of a triplet) to time, which is shown in a condensed form, unless I<--ms>
-is supplied, in which case the duration is shown in milliseconds.
+of a triplet) to time, which is shown in a condensed form, unless I<--
+ms> is supplied, in which case the duration is shown in milliseconds.
+The I<--fraction=x/y> option provides another means to set fractional
+durations, and is applied to all durations provided.
 
 See also B<time2notes>, which reverses millisecond values.
 
