@@ -127,6 +127,48 @@ if ( $scale_degrees != 12 ) {
 my $Tension;
 my $FORTE_NUMBER_RE = $Atu->forte_number_re;
 
+# From the older wikipedia "Forte Numbers" article and not the current
+# as of 2015 "List of pitch class sets", as that new page uses A/B prime
+# form names that I call half-prime...
+my %fnum2desc = (
+  '3-5'   => 'Viennese trichord',
+  '3-9'   => 'Suspended chord',
+  '3-10'  => 'Diminished triad',
+  '3-11'  => 'Major and minor triad',
+  '3-12'  => 'Augmented triad',
+  '4-6'   => 'Dream chord',
+  '4-9'   => 'Distance model',
+  '4-18'  => 'Diminished major seventh chord',
+  '4-19'  => 'Minor major seventh chord',
+  '4-20'  => 'Major seventh chord',
+  '4-22'  => 'Mu chord',
+  '4-24'  => 'Augmented seventh chord',
+  '4-26'  => 'Minor seventh chord',
+  '4-27'  => 'Dominant seventh chord',
+  '4-28'  => 'Diminished seventh chord',
+  '4-z15' => 'All-interval tetrachord',
+  '4-z29' => 'All-interval tetrachord',
+  '5-32'  => 'Elektra chord',
+  '5-35'  => 'Pentatonic scale',
+  '5-z17' => 'Farben chord',
+  '6-30'  => 'Petrushka chord',
+  '6-34'  => 'Mystic chord',
+  '6-35'  => 'Whole tone scale',
+  '6-z17' => 'All-interval hexachord',
+  '6-z44' => '6-Z44',
+  '6-z47' => 'Blues scale',
+  '7-20'  => 'Persian scale',
+  '7-22'  => 'Double harmonic scale',
+  '7-24'  => 'Enigmatic scale',
+  '7-25'  => 'Blues scale',
+  '7-30'  => 'Neapolitan scale',
+  '7-33'  => 'Major Locrian scale',
+  '7-34'  => 'Half diminished scale',
+  '7-35'  => 'Diatonic scale',
+  '8-23'  => 'Bebop scale',
+  '8-28'  => 'Octatonic scale',
+);
+
 $modes{$mode}->(@ARGV);
 exit 0;
 
@@ -287,7 +329,7 @@ sub basic {
   );
 
   my $forte = $Atu->pcs2forte($pset) // '';
-  print $forte, "\n";
+  print $forte, ( exists $fnum2desc{$forte} ? "\t$fnum2desc{$forte}" : '' ), "\n";
 
   my $half_prime = $Atu->half_prime_form($pset);
   if ( "@$half_prime" ne "@$prime_form" ) {
@@ -570,11 +612,13 @@ sub findin {
     'pitchset|P=s' => \my $base_input,
     'root=s'       => \my $root_pitch
   ) or print_help();
+
+  die "error: atonal-util findin needs --pitchset=... option\n"
+    if !defined $base_input;
+
   $Lyu->chrome('flats') if $Flag_Flat;
 
   my $ps_base;
-  die "error: atonal-util findin needs --pitchset=... option\n"
-    if !defined $base_input;
   if ( $base_input =~ m/^\d-/ ) {
     $ps_base = $Atu->forte2pcs($base_input);
     die "unknown Forte Number '$base_input'\n" if !defined $ps_base;
@@ -1831,11 +1875,12 @@ L<http://github.com/thrig/App-MusicTools>
 =head2 Known Issues
 
 Poor naming conventions and standards of underlying music theory and any
-associated mistakes in understanding thereof by the author.
+associated mistakes in understanding thereof by the author. (The Forte
+numbers are the Rahn Forte numbers, not the Forte Forte numbers.)
 
 =head1 SEE ALSO
 
-L<http://en.wikipedia.org/wiki/Forte_number>
+L<http://en.wikipedia.org/wiki/List_of_pitch_class_sets>
 
 L<Music::AtonalUtil>, L<Music::LilyPondUtil>, L<Music::Tension::Cope>
 

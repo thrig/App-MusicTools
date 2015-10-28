@@ -18,7 +18,7 @@ my %params = (
   ABSTRACT     => 'command line utilities for music composition and analysis',
   VERSION_FROM => 'lib/App/MusicTools.pm',
 
-  EXE_FILES    => [
+  EXE_FILES => [
     qw/atonal-util canonical harmonic-fit ly-fu scalemogrifier varionator vov/
   ],
 
@@ -48,7 +48,7 @@ my %params = (
     'File::Spec'              => 0,
     'File::Temp'              => 0,
     'Getopt::Long'            => 0,
-    'IPC::Open3'              => 0,
+    'IPC::Run3'               => 0,
     'JSON'                    => 0,
     'List::Util'              => 0,
     'Music::AtonalUtil'       => 1.14,
