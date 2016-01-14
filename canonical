@@ -1,6 +1,7 @@
 #!perl
 
-# Compute canon voices via the Music::Canon module.
+# Compute canon voices via the Music::Canon module, though this script
+# comes from the App::MusicTools distribution.
 #
 # Run perldoc(1) on this file for additional documentation.
 #
@@ -9,6 +10,7 @@
 
 use strict;
 use warnings;
+use feature qw(say);
 
 use File::Basename qw/basename/;
 use Getopt::Long qw/GetOptionsFromArray/;
@@ -19,6 +21,7 @@ use Try::Tiny;
 
 my $PROG_NAME = basename($0);
 
+# XXX too much repeated code between these, alas!
 my %Modes = (
   exact => \&do_exact,
   modal => \&do_modal,
@@ -102,6 +105,9 @@ sub _parse_modal_opt {
   return @ret;
 }
 
+# In the "you cannot simply moonwalk into Mordor" department, input such
+# as "n4. n8 n n n4" requires care, as there's implicit 8th notes that
+# must not become quarter notes in reverse, etc.
 sub _reverse_rhythm {
   my ($rhythm) = @_;
 
@@ -212,16 +218,42 @@ sub do_exact {
   GetOptionsFromArray( \@args, @Std_Opts, 'help|h' => \&emit_help_exact, )
     or emit_help_exact();
   my ( $canon, $lyu ) = _init_obj();
+  my $is_multicolumn = 0;
+  my @restofline;
 
+  # XXX could do line-by-line but that would require adding state
+  # support back into Music::Canon (a source of bugs under modal_map) so
+  # can then call modal_map on a single pitch (with state saved from the
+  # previous note). This here is so can have the pitch as the first
+  # column, and any other information (velocity, etc.) in subsequent
+  # columns, without dealing with shell temporary files and judicious
+  # use of paste(1).
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
-    chomp( @args = readline STDIN );
+    @args           = ();
+    $is_multicolumn = 1;
+    my $i = 0;
+    while ( my $line = readline *STDIN ) {
+      chomp $line;
+      next if $line =~ m/^\s*$/;
+      ( $args[$i], $restofline[$i] ) = split ' ', $line, 2;
+      $i++;
+    }
+  } else {
+    # due to shell quoting fun, often provide "a b' c" which thus must
+    # be split into individual notes
+    @args = map { split } @args;
   }
+
+  die "no notes found in input\n" if !@args;
 
   # XXX have lyu return object with dur/pitch bits or something so do
   # not need double parse
-  my @pitches = $lyu->notes2pitches( map split, @args );
-  my @rhythm = map { /[^\d-](\d+[.]*)/ ? $1 : '' } map split, @args;
-  _reverse_rhythm( \@rhythm ) if $canon->get_retrograde;
+  my @pitches = $lyu->notes2pitches( \@args );
+  my @rhythm = map { /[^\d-](\d+[.]*)/ ? $1 : '' } @args;
+  if ( $canon->get_retrograde ) {
+    @restofline = reverse @restofline;
+    _reverse_rhythm( \@rhythm );
+  }
 
   my @new_phrase = $canon->exact_map( \@pitches );
   @new_phrase = $lyu->p2ly(@new_phrase) if !$Flag_Raw;
@@ -230,7 +262,17 @@ sub do_exact {
     $new_phrase[$i] .= $rhythm[$i] unless $new_phrase[$i] =~ m/\d/;
   }
 
-  print join( ' ', @new_phrase ), "\n";
+  # As a not-compatible change, this *always* used to emit space-
+  # delimited values though for multicolumness (and to avoid a
+  # subsequent `tr ' ' '\n'`) switched output to be delimited by
+  # newlines.
+  if ($is_multicolumn) {
+    while (@new_phrase) {
+      say join( ' ', grep { defined } shift @new_phrase, shift @restofline );
+    }
+  } else {
+    print join( ' ', @new_phrase ), "\n";
+  }
   return 0;
 }
 
@@ -248,6 +290,8 @@ sub do_modal {
     'undef=s'         => \my $whoops_undef,
   ) or emit_help_modal();
   my ( $canon, $lyu ) = _init_obj();
+  my $is_multicolumn = 0;
+  my @restofline;
 
   $canon->set_modal_scale_in( _parse_modal_opt($input_mode) )
     if defined $input_mode;
@@ -261,17 +305,32 @@ sub do_modal {
   $whoops_undef //= 'x';
 
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
-    chomp( @args = readline STDIN );
+    @args           = ();
+    $is_multicolumn = 1;
+    my $i = 0;
+    while ( my $line = readline *STDIN ) {
+      chomp $line;
+      next if $line =~ m/^\s*$/;
+      ( $args[$i], $restofline[$i] ) = split ' ', $line, 2;
+      $i++;
+    }
+  } else {
+    # due to shell quoting fun, often provide "a b' c" which thus must
+    # be split into individual notes
+    @args = map { split } @args;
   }
 
-  my @pitches = $lyu->notes2pitches( map split, @args );
-  my @rhythm = map { /[^\d-](\d+[.]*)/ ? $1 : '' } map split, @args;
+  die "no notes found in input\n" if !@args;
+
+  my @pitches = $lyu->notes2pitches( \@args );
+  my @rhythm = map { /[^\d-](\d+[.]*)/ ? $1 : '' } @args;
 
   my @new_phrase = $canon->modal_map( \@pitches );
   @new_phrase = $lyu->p2ly( map { defined($_) ? $_ : $whoops_undef } @new_phrase )
     if !$Flag_Raw;
 
   if ( $canon->get_retrograde ) {
+    @restofline = reverse @restofline;
     _reverse_rhythm( \@rhythm );
   }
 
@@ -279,7 +338,13 @@ sub do_modal {
     $new_phrase[$i] .= $rhythm[$i] unless $new_phrase[$i] =~ m/\d/;
   }
 
-  print join( ' ', @new_phrase ), "\n";
+  if ($is_multicolumn) {
+    while (@new_phrase) {
+      say join( ' ', grep { defined } shift @new_phrase, shift @restofline );
+    }
+  } else {
+    print join( ' ', @new_phrase ), "\n";
+  }
   return 0;
 }
 
@@ -303,6 +368,15 @@ Command line interface to the mapping methods present in the
 L<Music::Canon> module. Certain questions might be better answered by
 coding directly against L<Music::Canon>; see the C<eg/> directory under
 the distribution of that Perl module for examples.
+
+Note that input via the command line is handled differently from notes
+supplied via standard input; in the first case, all of the input is
+considered to be notes. In the second case, only the first column
+(delimited by a space) is considered to be note material, and the other
+columns should be passed through unchanged.
+
+  $ echo 42 cat | canonical exact --transpose=a
+  a cat
 
 =head1 GLOBAL OPTIONS
 
@@ -464,6 +538,14 @@ indicate that. This following line transposes the result up by a major third:
   $ canonical --flats modal --undef=r --rel=des --sp=des --transpose=4 \
     "des8 r des r des c16 bes aes8 ges aes8 ges16 f ees8 des8"
 
+Complicated input may benefit from the use of standard input, as in this
+case C<canonical> will only read pitch values from the first column of
+input, and will leave the rest unchanged. This would allow rhythmic,
+dynamics, or other metadata to pass through C<canonical> unchanged,
+provided this information is not in the first column.
+
+  $ (echo 0 4. f; echo 2 8 p; echo 4 4 ff) | canonical -t c exact
+
 =head1 FILES
 
 A ZSH completion script is available in the C<zsh-compdef/> directory of 
@@ -498,7 +580,7 @@ Jeremy Mates
 
 =head1 COPYRIGHT
 
-Copyright (C) 2013-2015 by Jeremy Mates
+Copyright (C) 2013-2016 by Jeremy Mates
 
 This module is free software; you can redistribute it and/or modify it
 under the Artistic License (2.0).

@@ -1,37 +1,38 @@
 #!perl
 
-use warnings;
-use strict;
+use Test::Cmd;
+use Test::Most;
 
-use Test::More;
+my $deeply = \&eq_or_diff;
 
-use lib 't';
-use Util;
+my $test_prog = './scalemogrifier';
+my $tc        = Test::Cmd->new(
+  interpreter => $^X,
+  prog        => $test_prog,
+  verbose     => 0,            # TODO is there a standard ENV to toggling?
+  workdir     => '',
+);
 
 my @tests = (
-  { name     => 'default',
-    cmd      => [qw{./scalemogrifier}],
+  { args     => '',
     expected => q{c d e f g a b c'},
-    lines    => 1,
   },
-  { name     => 'aeolian a',
-    cmd      => [qw{./scalemogrifier --mode=minor --transpose=a}],
+  { args     => '--mode=minor --transpose=a',
     expected => q{a b c d e f g a'},
-    lines    => 1,
   },
-  { name     => 'raw',
-    cmd      => [qw{./scalemogrifier --raw}],
+  { args     => '--raw',
     expected => q{0 2 4 5 7 9 11 12},
-    lines    => 1,
   },
 );
 
-# by three as Util.pm has a was-something-on-stderr test in addition to
-# the two in the loop below
-plan tests => @tests * 3;
+plan tests => @tests * 2;
 
 for my $test (@tests) {
-  my @output = run_util( @{ $test->{cmd} } );
-  is( $output[0],     $test->{expected}, $test->{name} . " output" );
-  is( scalar @output, $test->{lines},    $test->{name} . " lines" );
+  $tc->run( args => $test->{args} );
+  $deeply->(
+    [ map { s/\s+$//r } $tc->stdout ],
+    [ $test->{expected} ],
+    "$test_prog $test->{args}"
+  );
+  is( $tc->stderr, "", "$test_prog $test->{args} emits no stderr" );
 }

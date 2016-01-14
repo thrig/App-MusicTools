@@ -8,11 +8,9 @@ atonal-util
 canonical
 capture-stderr
 harmonic-fit
-install-music-modules
 lib/App/MusicTools.pm
 ly-fu
 scalemogrifier
-t/Util.pm
 t/atonal-util.t
 t/canonical.t
 t/harmonic-fit.t
@@ -21,11 +19,8 @@ t/pod-coverage.t
 t/pod.t
 t/rules
 t/scalemogrifier.t
-t/variances
 t/varionator.t
 t/vov.t
-t/zrelation-no
-t/zrelation-yes
 varionator
 vov
 zsh-compdef/_atonal-util

@@ -1,128 +1,173 @@
 #!perl
 
-use warnings;
-use strict;
+use Test::Cmd;
+use Test::Most;    # plan calculated down at bottom
 
-use Test::More;
+my $deeply = \&eq_or_diff;
 
-eval 'use Test::Differences';    # display convenience
-my $deeply = $@ ? \&is_deeply : \&eq_or_diff;
-
-use lib 't';
-use Util;
-
-my @help_commands = (
-  [qw{./canonical --help}],
-  [qw{./canonical exact --help}],
-  [qw{./canonical modal --help}],
+my $test_prog = './canonical';
+my $tc        = Test::Cmd->new(
+  interpreter => $^X,
+  prog        => $test_prog,
+  verbose     => 0,            # TODO is there a standard ENV to toggling?
+  workdir     => '',
 );
 
-my @tests = (
+# Tests via only command line arguments, as this form of invocation is
+# handled differently from the data-in-on-stdin case, below.
+my @arg_only_tests = (
   # exact mode tests
-  { cmd      => [qw{./canonical --relative=c exact --transpose=7  0 4 7}],
-    expected => [q{g b d}],
+  { args     => '--relative=c exact --transpose=7 0 4 7',
+    expected => [qw{g b d}],
   },
-  { cmd      => [qw{./canonical exact --transpose=7  c e g}],
-    expected => [q{g b d'}],
+  { args     => 'exact --transpose=7 c e g',
+    expected => [qw{g b d'}],
   },
-  { cmd      => [qw{./canonical exact --transpose=g  c e g}],
-    expected => [q{g b d'}],
+  { args     => 'exact --transpose=g c e g',
+    expected => [qw{g b d'}],
   },
-  { cmd      => [qw{./canonical --raw exact --transpose=g  c e g}],
-    expected => [q{55 59 62}],
+  { args     => '--raw exact --transpose=g c e g',
+    expected => [qw{55 59 62}],
   },
-  { cmd      => [qw{./canonical --relative=c exact --contrary  c f g e a c}],
-    expected => [q{c g f gis dis c}],
+  { args     => '--relative=c exact --contrary c f g e a c',
+    expected => [qw{c g f gis dis c}],
   },
-  { cmd      => [qw{./canonical --raw exact --retrograde  1 2 3}],
-    expected => [q{3 2 1}],
+  { args     => '--raw exact --retrograde 1 2 3',
+    expected => [qw{3 2 1}],
   },
-  { cmd      => [qw{./canonical --flats exact --transpose=1  c e g}],
-    expected => [q{des f aes}],
-  },
-  # Hindemith overtone ordering in G for something more complicated
-  { cmd => [
-      qw{./canonical --relative=g' --contrary --retrograde exact},
-      "g d' c e b bes ees a, f' aes, fis' cis"
-    ],
-    expected => [q{cis gis fis' a, f' b, e dis ais d c g'}],
-  },
-  # and also rhythmic alterations!
-  { cmd => [
-      qw{./canonical --relative=g' --contrary --retrograde exact},
-      "g4 d'8. c16 e4 b bes ees a, f' aes, fis' cis"
-    ],
-    expected => [q{cis4 gis fis' a, f' b, e dis ais d16 c8. g'4}],
+  { args     => '--flats exact --transpose=1 c e g',
+    expected => [qw{des f aes}],
   },
 
   # modal tests - mostly just copied from Music-Canon/t/Music-
   # Canon.t cases.
-  { cmd      => [qw{./canonical --relative=c modal --contrary  0 13}],
-    expected => [q{c x}],
+  { args     => '--relative=c modal --contrary  0 13',
+    expected => [qw{c x}],
   },
-  { cmd      => [qw{./canonical --relative=c modal --contrary --undef=q 0 8}],
-    expected => [q{c q}],
+  { args     => '--relative=c modal --contrary --undef=q 0 8',
+    expected => [qw{c q}],
   },
-  { cmd => [
-      qw{./canonical modal --contrary --retrograde --raw 0 2 4 5 7 9 11 12 14 16 17 19}
-    ],
-    expected => [q{-19 -17 -15 -13 -12 -10 -8 -7 -5 -3 -1 0}],
+  { args     => 'modal --contrary --retrograde --raw 0 2 4 5 7 9 11 12 14 16 17 19',
+    expected => [qw{-19 -17 -15 -13 -12 -10 -8 -7 -5 -3 -1 0}],
   },
-  { cmd => [
-      qw{./canonical --rel=c modal --flats --sp=c --ep=bes},
-      '--output=1,4,1,4', qw{c cis d}
-    ],
-    expected => [q{bes x b}],
+  { args     => '--rel=c modal --flats --sp=c --ep=bes --output=1,4,1,4 c cis d',
+    expected => [qw{bes x b}],
   },
-  { cmd => [
-      qw{./canonical --rel=c modal --flats --sp=c --ep=aes},
-      '--output=2,1,4,1', qw{c cis d}
-    ],
-    expected => [q{aes a bes}],
+  { args     => '--rel=c modal --flats --sp=c --ep=aes --output=2,1,4,1 c cis d',
+    expected => [qw{aes a bes}],
   },
-  { cmd => [
-      qw{./canonical --rel=c modal --flats --sp=c --ep=b},
-      '--output=4,1,4,2', qw{c cis d}
-    ],
-    expected => [q{b des ees}],
+  { args     => '--rel=c modal --flats --sp=c --ep=b --output=4,1,4,2 c cis d',
+    expected => [qw{b des ees}],
   },
-  { cmd => [
-      qw{./canonical --rel=c modal --chrome=-1 --flats --sp=c --ep=b},
-      '--output=4,1,4,2', qw{c cis d}
-    ],
-    expected => [q{b c ees}],
+  { args =>
+      '--rel=c modal --chrome=-1 --flats --sp=c --ep=b --output=4,1,4,2 c cis d',
+    expected => [qw{b c ees}],
   },
-  { cmd => [
-      qw{./canonical --rel=c modal --chrome=1 --flats --sp=c --ep=b},
-      '--output=4,1,4,2', qw{c cis d}
-    ],
-    expected => [q{b d ees}],
+  { args =>
+      '--rel=c modal --chrome=1 --flats --sp=c --ep=b --output=4,1,4,2 c cis d',
+    expected => [qw{b d ees}],
   },
   # rhythmic foo
-  { cmd => [
-      qw{./canonical --rel=c modal --chrome=1 --flats --sp=c --ep=b},
-      '--output=4,1,4,2', qw{c8.. cis32 d4}
-    ],
-    expected => [q{b8.. d32 ees4}],
+  { args =>
+      '--rel=c modal --chrome=1 --flats --sp=c --ep=b --output=4,1,4,2 c8.. cis32 d4',
+    expected => [qw{b8.. d32 ees4}],
   },
-  { cmd => [qw{./canonical --relative=c modal --retrograde c16 d8. e4 f g}],
-    expected => [q{g4 f e d8. c16}],
+  { args     => '--relative=c modal --retrograde c16 d8. e4 f g',
+    expected => [qw{g4 f e d8. c16}],
   },
   # transpositions tricky
-  { cmd => [qw{./canonical modal --transpose=3 --flats --input=minor --output=minor g f ees}],
-    expected => [q{bes a g}],
+  { args     => 'modal --transpose=3 --flats --input=minor --output=minor g f ees',
+    expected => [qw{bes a g}],
   },
 );
 
-for my $cmd (@help_commands) {
-  my ( $sout, $serr ) = run_cmd_with_stderr(@$cmd);
-  ok( $serr->[0] =~ m/^Usage/, "'@$cmd' emits to stderr" );
+# Only the first column is considered when the notes arrive via stdin
+# (this allows the subsequent columns to bear other data, such as
+# lyrics, cat photos, or such.)
+my @stdin_tests = (
+  # Either "no remaining arguments" or "ultimate argument is a -" should
+  # be supported.
+  { args => '--rel=c modal --chrome=1 --flats --sp=c --ep=b --output=4,1,4,2',
+    # TODO is newline portable to e.g. Win32, or is $/ or such necessary?
+    stdin    => join( "\n", qw{c cis d} ),
+    expected => [qw{b d ees}],
+  },
+  { args => 'modal --rel=c --chrome=1 --flats --sp=c --ep=b --output=4,1,4,2 -',
+    # also how is trailing-newline vesus no-EOF-EOL case handled?
+    stdin    => join( "\n", qw{c cis d} ) . "\n",
+    expected => [qw{b d ees}],
+  },
+  # if multicolumn, not-first-column data should be unchanged
+  { args  => 'exact --transpose=c',
+    stdin => join( "\n", "0 4. f", "2 8 p", "4 4 ff" ),
+    expected => [ "c 4. f", "d 8 p", "e 4 ff" ],
+  },
+  { args  => 'exact --transpose=c --retrograde',
+    stdin => join( "\n", "0 4. f", "2 8 p", "4 4 ff" ),
+    expected => [ "e 4 ff", "d 8 p", "c 4. f" ],
+  },
+  # Hindemith overtone ordering in G for something more complicated
+  # (also complicated is how to run ' in commands through Test::Cmd
+  # which here is dodged by supplying that input instead via stdin).
+  { args  => q{--relative=g --contrary --retrograde exact},
+    stdin => join( "\n",
+      "g", "d'", "c", "e", "b", "bes", "ees", "a,", "f'", "aes,", "fis'", "cis" ),
+    expected =>
+      [ "cis", "gis", "fis'", "a,", "f'", "b,", "e", "dis", "ais", "d", "c", "g'" ],
+  },
+  # and also rhythmic alterations!
+  { args  => q{--relative=g --contrary --retrograde exact},
+    stdin => join( "\n",
+      "g4",  "d'8.", "c16", "e4",   "b",    "bes",
+      "ees", "a,",   "f'",  "aes,", "fis'", "cis" ),
+    expected => [
+      "cis4", "gis", "fis'", "a,",  "f'",  "b,",
+      "e",    "dis", "ais",  "d16", "c8.", "g'4"
+    ],
+  },
+);
+
+my @stderr_tests = (
+  { args     => '--help',
+    expected => qr/^Usage/,
+  },
+  { args     => 'exact --help',
+    expected => qr/^Usage/,
+  },
+  { args     => 'modal --help',
+    expected => qr/^Usage/,
+  },
+  { args     => 'exact',
+    expected => qr/no notes/,
+  },
+  { args     => 'modal',
+    expected => qr/no notes/,
+  },
+);
+
+for my $test (@arg_only_tests) {
+  $tc->run( args => $test->{args} );
+  $deeply->(
+    [ split ' ', $tc->stdout ],
+    $test->{expected}, "ARGS: $test_prog $test->{args}"
+  );
+  is( $tc->stderr, "", "ARGS: $test_prog $test->{args} emits no stderr" );
 }
 
-for my $test (@tests) {
-  my @output = run_util( @{ $test->{cmd} } );
-  s/\s+$// for @output;
-  $deeply->( \@output, $test->{expected}, "@{$test->{cmd}}" );
+for my $test (@stdin_tests) {
+  $tc->run( args => $test->{args}, stdin => $test->{stdin} );
+  $deeply->(
+    [ split "\n", $tc->stdout ],
+    $test->{expected}, "STDIN: $test_prog $test->{args}"
+  );
+  is( $tc->stderr, "", "STDIN: $test_prog $test->{args} emits no stderr" );
 }
 
-plan tests => @help_commands + @tests * 2;
+for my $test (@stderr_tests) {
+  $tc->run( args => $test->{args} );
+  is( length $tc->stdout, 0, "STDERR: $test_prog $test->{args} emits no stdout" );
+  ok( $tc->stderr =~ $test->{expected},
+    "STDERR: $test_prog $test->{args} pattern match $test->{expected}" );
+}
+
+plan tests => @arg_only_tests * 2 + @stdin_tests * 2 + @stderr_tests * 2;

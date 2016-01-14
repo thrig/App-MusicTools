@@ -1,14 +1,12 @@
 # -*- Perl -*-
+#
+# Of more interest may be the scripts listed as EXE_FILES in Makefile.PL.
 
 package App::MusicTools;
-
-use 5.010000;
-use strict;
-use warnings;
-
-our $VERSION = '1.28';
-
+use 5.014000;
+our $VERSION = '1.29';
 1;
+
 __END__
 
 =head1 NAME
@@ -86,6 +84,8 @@ necessary.
 =item *
 
 "The Structure of Atonal Music" by Allen Forte (ISBN 978-0-300-02120-2).
+Though, note that there are two forms of pitch set construction; the one
+created by Rahn is more common in computing circles.
 
 =item *
 
@@ -108,7 +108,7 @@ thrig - Jeremy Mates (cpan:JMATES) C<< <jmates at cpan.org> >>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2012-2015 by Jeremy Mates
+Copyright (C) 2012-2016 by Jeremy Mates
 
 This module is free software; you can redistribute it and/or modify it
 under the Artistic License (2.0).

@@ -293,7 +293,7 @@ sub args2pitchset {
   my (@args) = @_;
 
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
-    chomp( @args = readline STDIN );
+    chomp( @args = readline *STDIN );
   }
 
   my $pitch_set;
@@ -405,7 +405,7 @@ sub beats2set {
 #
 #  my @notes;
 #  if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
-#    chomp( @args = readline STDIN );
+#    chomp( @args = readline *STDIN );
 #  }
 #
 #  # split input, as lilypond ' really do not suit the Unix shell, so
@@ -464,7 +464,7 @@ sub combos {
 
   my @freqs;
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
-    while ( my $line = readline STDIN ) {
+    while ( my $line = readline *STDIN ) {
       push @freqs, split ' ', $line;
     }
   } else {
@@ -737,7 +737,7 @@ sub freq2pitch {
   my ( $scala, $p2f ) = _init_scala( $concert_freq, $concert_pitch, $scala_file );
 
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
-    chomp( @args = readline STDIN );
+    chomp( @args = readline *STDIN );
   }
 
   # Not the default, so if things persist or chain due to some rewrite,
@@ -885,7 +885,7 @@ sub ly2pitch {
 
   my @notes;
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
-    chomp( @args = readline STDIN );
+    chomp( @args = readline *STDIN );
   }
 
   # split input, as lilypond ' really do not suit the Unix shell, so
@@ -934,7 +934,7 @@ sub ly2struct {
 
   my @notes;
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
-    chomp( @args = readline STDIN );
+    chomp( @args = readline *STDIN );
   }
 
   # split input, as lilypond ' really do not suit the Unix shell, so
@@ -1090,7 +1090,7 @@ sub pitch2freq {
   }
 
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
-    chomp( @args = readline STDIN );
+    chomp( @args = readline *STDIN );
   }
 
   # If pitch must int() it, otherwise feed to lilypond for conversion so
@@ -1127,7 +1127,7 @@ sub pitch2ly {
 
   my @pitches;
   if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
-    chomp( @args = readline STDIN );
+    chomp( @args = readline *STDIN );
     for my $arg (@args) {
       push @pitches, split ' ', $arg;
     }
@@ -1282,7 +1282,7 @@ sub subsets {
 
 sub stdin2pitchsets {
   my @ss;
-  while ( my $line = readline STDIN ) {
+  while ( my $line = readline *STDIN ) {
     my @pset;
     if ( $line =~ m/($FORTE_NUMBER_RE)/ ) {
       @pset = @{ $Atu->forte2pcs($1) };

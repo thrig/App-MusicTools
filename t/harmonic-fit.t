@@ -1,29 +1,32 @@
 #!perl
 
-use warnings;
-use strict;
+use Test::Cmd;
+use Test::Most;    # plan is down at bottom
 
-use Test::More;
+my $deeply = \&eq_or_diff;
 
-eval 'use Test::Differences';    # display convenience
-my $deeply = $@ ? \&is_deeply : \&eq_or_diff;
-
-use lib 't';
-use Util;
+my $test_prog = './harmonic-fit';
+my $tc        = Test::Cmd->new(
+  interpreter => $^X,
+  prog        => $test_prog,
+  verbose     => 0,            # TODO is there a standard ENV to toggling?
+  workdir     => '',
+);
 
 my @tests = (
-  { cmd => [qw{./harmonic-fit c g}],
+  { args => 'c g',
     expected =>
       [ "84\tc", "27\tg", "8\tf", "8\tais", "1\tcis", "1\tdis", "1\tgis" ],
   },
 );
 
-# by three as Util.pm has a was-something-on-stderr test in addition to
-# the two in the loop below
 plan tests => @tests * 2;
 
 for my $test (@tests) {
-  my @output = run_util( @{ $test->{cmd} } );
-  s/\s+$// for @output;
-  $deeply->( \@output, $test->{expected}, "@{$test->{cmd}}" );
+  $tc->run( args => $test->{args} );
+  $deeply->(
+    [ map { s/\s+$//r } split "\n", $tc->stdout ],
+    $test->{expected}, "$test_prog $test->{args}"
+  );
+  is( $tc->stderr, "", "$test_prog $test->{args} emits no stderr" );
 }

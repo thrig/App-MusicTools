@@ -75,10 +75,10 @@ sub possibilities {
   my $argstr;
   my @possibles;
 
-  if ( @ARGV and $ARGV[-1] ne '-' ) {
-    $argstr = "@ARGV";
+  if ( @ARGV == 1 and $ARGV[0] eq '-' ) {
+    $argstr = do { local $/; readline *STDIN };
   } else {
-    $argstr = do { local $/; readline(*STDIN) };
+    $argstr = "@ARGV";
   }
 
   my @pp = \@possibles;

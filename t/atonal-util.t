@@ -1,186 +1,186 @@
 #!perl
 
-# NOTE trailing whitespace may or may not be present (trimmed and
-# ignored in the tests).
+use Test::Cmd;
+use Test::Most;    # plan is down at bottom
 
-use warnings;
-use strict;
+my $deeply = \&eq_or_diff;
 
-use Test::More;    # plan is down at bottom
+my $test_prog = './atonal-util';
+my $tc        = Test::Cmd->new(
+  interpreter => $^X,
+  prog        => $test_prog,
+  verbose     => 0,            # TODO is there a standard ENV to toggling?
+  workdir     => '',
+);
 
-eval 'use Test::Differences';    # display convenience
-my $deeply = $@ ? \&is_deeply : \&eq_or_diff;
-
-use lib 't';
-use Util;
-
-# Command to run, expected output lines (write a custom test, below, if
-# this model does not suffice).
-#
-# NOTE most of these tests written several months after the code was
-# worked out, so might just be confirming bad behavior; if in doubt,
-# double check things against some other atonal software or
-# documentation! Also, the tests are in no way complete, so more may be
-# necessary to properly cover various edge cases or options to the
-# various modes.
+# These may just confirm existing bad behavior, or duplicate tests from
+# Music::AtonalUtil, or probably are otherwise incomplete. With the
+# switch to Test::Cmd some tests were fiddled with to avoid ' in the
+# arguments. Trailing whitespace in atonal-util output is ignored by
+# most of these tests.
 my @tests = (
-  { cmd      => [qw{./atonal-util --sd=16 adjacent_interval_content 0 3 6 10 12}],
+  { args     => '--sd=16 adjacent_interval_content 0 3 6 10 12',
     expected => ['01220000'],
   },
-  { cmd      => [qw{./atonal-util basic 0 4 7}],
-    expected => [ '0,3,7', '001110', "3-11\tMajor and minor triad", "0,4,7\thalf_prime" ],
+  { args => 'basic 0 4 7',
+    expected =>
+      [ '0,3,7', '001110', "3-11\tMajor and minor triad", "0,4,7\thalf_prime" ],
   },
-  { cmd      => [qw{./atonal-util basic c e g}],
-    expected => [ '0,3,7', '001110', "3-11\tMajor and minor triad", "0,4,7\thalf_prime" ],
+  { args => 'basic c e g',
+    expected =>
+      [ '0,3,7', '001110', "3-11\tMajor and minor triad", "0,4,7\thalf_prime" ],
   },
-  { cmd      => [qw{./atonal-util basic --ly --tension=cope 0 1 2}],
+  { args     => 'basic --ly --tension=cope 0 1 2',
     expected => [ 'c,cis,d', '210000', '3-1', '1.800  0.800  1.000' ],
   },
-  { cmd      => [qw{./atonal-util --rs=_ basic c e g}],
-    expected => [ '0_3_7', '001110', "3-11\tMajor and minor triad", "0_4_7\thalf_prime" ],
+  { args => '--rs=_ basic c e g',
+    expected =>
+      [ '0_3_7', '001110', "3-11\tMajor and minor triad", "0_4_7\thalf_prime" ],
   },
-  { cmd      => [qw{./atonal-util beats2set --scaledegrees=16 x..x ..x. ..x. x...}],
+  { args     => 'beats2set --scaledegrees=16 x..x ..x. ..x. x...',
     expected => ['0,3,6,10,12'],
   },
-  { cmd      => [qw{./atonal-util circular_permute 0 1 2}],
+  { args     => 'circular_permute 0 1 2',
     expected => [ '0 1 2', '1 2 0', '2 0 1' ],
   },
-  { cmd      => [qw{./atonal-util combos 440 880}],
+  { args     => 'combos 440 880',
     expected => [
       "440.00+880.00 = 1320.00\t(88 error -1.49)",
       "880.00-440.00 = 440.00\t(69 error 0.00)"
     ],
   },
-  { cmd      => [qw{./atonal-util combos c g}],
+  { args     => 'combos c g',
     expected => [
       "130.81+196.00 = 326.81\t(64 error 2.82)",
       "196.00-130.81 = 65.18\t(36 error 0.22)"
     ],
   },
-  { cmd      => [ './atonal-util', 'complement', '0,1,2,3,4,5,7,8,9,10,11' ],
+  { args     => 'complement 0,1,2,3,4,5,7,8,9,10,11',
     expected => ['6'],
   },
-  { cmd      => [qw{./atonal-util equivs 0 1 2 3 4 5 6 7 8 9 10 11}],
+  { args     => 'equivs 0 1 2 3 4 5 6 7 8 9 10 11',
     expected => ['0 1 2 3 4 5 6 7 8 9 10 11'],
   },
-  { cmd      => [qw{./atonal-util findall --fn=5 --root=0 c e g b a}],
+  { args     => 'findall --fn=5 --root=0 c e g b a',
     expected => ["5-27\tTi(0)\t0,11,9,7,4"],
   },
-  { cmd      => [qw{./atonal-util findin --pitchset=4-23 --root=2 0 2 7 9}],
+  { args     => 'findin --pitchset=4-23 --root=2 0 2 7 9',
     expected => ["-\tTi(2)\t2,0,9,7"],
   },
-  { cmd      => [qw{./atonal-util forte2pcs 9-3}],
+  { args     => 'forte2pcs 9-3',
     expected => ['0,1,2,3,4,5,6,8,9'],
   },
-  { cmd      => [qw{./atonal-util freq2pitch 440}],
+  { args     => 'freq2pitch 440',
     expected => ["440.00\t69"],
   },
-  { cmd      => [qw{./atonal-util freq2pitch --cf=422.5 440}],
+  { args     => 'freq2pitch --cf=422.5 440',
     expected => ["440.00\t70"],
   },
-  { cmd      => [qw{./atonal-util half_prime_form c b g}],
+  { args     => 'half_prime_form c b g',
     expected => ['0,4,5'],
   },
-  { cmd      => [qw{./atonal-util interval_class_content c fis b}],
+  { args     => 'interval_class_content c fis b',
     expected => ['100011'],
   },
-  { cmd      => [qw{./atonal-util intervals2pcs --pitch=2 3 4 7}],
+  { args     => 'intervals2pcs --pitch=2 3 4 7',
     expected => ['2,5,9,4'],
   },
-  { cmd      => [qw{./atonal-util invariance_matrix 0 2 4}],
+  { args     => 'invariance_matrix 0 2 4',
     expected => [ '0,2,4', '2,4,6', '4,6,8' ],
   },
-  { cmd      => [qw{./atonal-util invert 1 2 3}],
+  { args     => 'invert 1 2 3',
     expected => ['11,10,9'],
   },
-  { cmd      => [qw{./atonal-util ly2pitch c'}],
-    expected => ['60'],
-  },
-  { cmd      => [qw{./atonal-util ly2struct --tempo=120 --relative=c' c4 r8}],
-    expected => [ "\t{ 262, 500 },\t/* c4 */", "\t{ 0, 250 },\t/* r8 */" ],
+  # TODO how get ' through Test::Cmd?
+  # { args      => q{ly2pitch c'},
+  #   expected => ['60'],
+  # },
+  { args     => 'ly2struct --tempo=120 --relative=c c4 r8',
+    expected => [ "\t{ 131, 500 },\t/* c4 */", "\t{ 0, 250 },\t/* r8 */" ],
 
   },
-  { cmd      => [qw{./atonal-util multiply --factor=2 1 2 3}],
+  { args     => 'multiply --factor=2 1 2 3',
     expected => ['2 4 6'],
   },
-  { cmd      => [qw{./atonal-util normal_form e g c}],
+  { args     => 'normal_form e g c',
     expected => ['0,4,7'],
   },
-  { cmd      => [qw{./atonal-util notes2time 1}],
+  { args     => 'notes2time 1',
     expected => ['4s'],
   },
-  { cmd      => [qw{./atonal-util notes2time --ms --tempo=120 1}],
+  { args     => 'notes2time --ms --tempo=120 1',
     expected => ['2000'],
   },
-  { cmd      => [qw{./atonal-util notes2time --ms --tempo=160 c4*2/3 c c}],
+  { args     => 'notes2time --ms --tempo=160 c4*2/3 c c',
     expected => [ '250', '250', '250', '= 750' ],
   },
-  { cmd      => [qw{./atonal-util notes2time --fraction=2/3 c4. d8 e4}],
+  { args     => 'notes2time --fraction=2/3 c4. d8 e4',
     expected => [ '1s', '333ms', '666ms', '= 2s' ],
   },
-  { cmd      => [qw{./atonal-util pcs2forte 4 6 3 7}],
+  { args     => 'pcs2forte 4 6 3 7',
     expected => ['4-3'],
   },
-  { cmd      => [qw{./atonal-util pcs2intervals 3 4 7}],
+  { args     => 'pcs2intervals 3 4 7',
     expected => ['1,3'],
   },
-  { cmd      => [qw{./atonal-util pitch2freq 60}],
+  { args     => 'pitch2freq 60',
     expected => ["60\t261.63"],
   },
-  { cmd      => [qw{./atonal-util pitch2freq --cf=422.5 a'}],
-    expected => ["69\t422.50"],
+  # TODO need to check these numbers manually
+  { args     => q{pitch2freq --cf=422.5 a},
+    expected => ["57\t211.25"],
   },
-  { cmd      => [qw{./atonal-util pitch2intervalclass 4}],
+  { args     => 'pitch2intervalclass 4',
     expected => ['4'],
   },
-  { cmd      => [qw{./atonal-util pitch2intervalclass 8}],
+  { args     => 'pitch2intervalclass 8',
     expected => ['4'],
   },
-  { cmd      => [qw{./atonal-util pitch2ly 72}],
+  { args     => 'pitch2ly 72',
     expected => [q{c''}],
   },
-  { cmd      => [qw{./atonal-util prime_form 0 4 7}],
+  { args     => 'prime_form 0 4 7',
     expected => ['0,3,7'],
   },
-  { cmd      => [qw{./atonal-util recipe --file=t/rules 0 11 3}],
+  { args     => 'recipe --file=t/rules 0 11 3',
     expected => ['4,8,7'],
   },
-  { cmd      => [qw{./atonal-util retrograde 1 2 3}],
+  { args     => 'retrograde 1 2 3',
     expected => ['3,2,1'],
   },
-  { cmd      => [qw{./atonal-util rotate --rotate=3 1 2 3 4}],
+  { args     => 'rotate --rotate=3 1 2 3 4',
     expected => ['2,3,4,1'],
   },
-  { cmd      => [qw{./atonal-util set2beats --scaledegrees=16 4-z15}],
+  { args     => 'set2beats --scaledegrees=16 4-z15',
     expected => ['xx..x.x.........'],
   },
-  { cmd      => [qw{./atonal-util set_complex 0 2 7}],
+  { args     => 'set_complex 0 2 7',
     expected => [ '0,2,7', '10,0,5', '5,7,0' ],
   },
-  { cmd => [qw{./atonal-util subsets 3-1}],
+  { args => 'subsets 3-1',
     # NOTE might false alarm if permutation module changes ordering; if
     # so, sort the output?
     expected => [ '0,1', '0,2', '1,2', ],
   },
-  { cmd      => [qw{./atonal-util tcs 7-4}],
+  { args     => 'tcs 7-4',
     expected => ['7 5 4 4 3 3 4 3 3 4 4 5'],
   },
-  { cmd      => [qw{./atonal-util tcis 7-4}],
+  { args     => 'tcis 7-4',
     expected => ['2 4 4 4 5 4 5 6 5 4 4 2'],
   },
-  { cmd      => [qw{./atonal-util tension g b d f}],
+  { args     => 'tension g b d f',
     expected => ["1.000  0.100  0.700\t0.2,0.1,0.7"],
   },
-  { cmd      => [qw{./atonal-util time2notes 1234}],
+  { args     => 'time2notes 1234',
     expected => ['c4*123/100'],
   },
-  { cmd      => [qw{./atonal-util transpose --transpose=7 0 6 11}],
+  { args     => 'transpose --transpose=7 0 6 11',
     expected => ['7,1,6'],
   },
-  { cmd      => [qw{./atonal-util transpose_invert --transpose=3 1 2 3}],
+  { args     => 'transpose_invert --transpose=3 1 2 3',
     expected => ['2,1,0'],
   },
-  { cmd      => [qw{./atonal-util whatscalesfit c d e f g a b}],
+  { args     => 'whatscalesfit c d e f g a b',
     expected => [
       'C  Major                     c     d     e     f     g     a     b',
       'D  Dorian                    d     e     f     g     a     b     c',
@@ -194,26 +194,30 @@ my @tests = (
   },
 );
 
+# TODO
 for my $test (@tests) {
-  my @output = run_util( @{ $test->{cmd} } );
-  s/\s+$// for @output;
-  $deeply->( \@output, $test->{expected}, "@{$test->{cmd}}" );
+  $tc->run( args => $test->{args} );
+  $deeply->(
+    [ map { s/\s+$//r } split "\n", $tc->stdout ],
+    $test->{expected}, "$test_prog $test->{args}"
+  );
+  is( $tc->stderr, "", "$test_prog $test->{args} emits no stderr" );
 }
 
 # Custom tests for things that do not fit the above model well
 
-my @fnums = run_util(qw{./atonal-util fnums});
+$tc->run( args => 'fnums' );
+my @fnums = $tc->stdout;
 $fnums[0] =~ s/\s+$//;
 is( $fnums[0], "3-1\t0,1,2           \t210000", 'first forte number' );
 is( scalar @fnums, 208, 'forte numbers count' );
 
-my ( $sout, $serr ) = run_cmd_with_stderr(qw{./atonal-util --help});
-ok( $serr->[0] =~ m/^Usage/, 'help emits to stderr' );
+$tc->run( args => '--help' );
+ok( $tc->stderr =~ m/^Usage/, 'help emits to stderr' );
 
-my ( $ivars, $ivars_serr ) =
-  run_cmd_with_stderr(qw{./atonal-util invariants 3-9});
+$tc->run( args => 'invariants 3-9' );
 $deeply->(
-  $ivars,
+  [ map { s/\s+$//r } split "\n", $tc->stdout ],
   [ 'T(0)   [ 0,2,7    ] ivars [ 0,2,7    ] 3-9',
     'T(2)   [ 2,4,9    ] ivars [ 2        ]',
     'T(5)   [ 5,7,0    ] ivars [ 7,0      ]',
@@ -227,16 +231,21 @@ $deeply->(
   ],
   'invariences'
 );
-$deeply->( $ivars_serr, ['[0,2,7] icc 010020'], 'invarients stderr' );
+$deeply->(
+  [ map { s/\s+$//r } split "\n", $tc->stderr ],
+  ['[0,2,7] icc 010020'], 'invarients stderr'
+);
 
-my @vout = pipe_into_cmd( 't/variances', qw{./atonal-util variances} );
-$deeply->( \@vout, [ '0,1,2,3', '4,5', '0,1,2,3,4,5' ], 'variances' );
+$tc->run( args => 'variances', stdin => "5-1\n0 1 2 3 5\n" );
+$deeply->(
+  [ map { s/\s+$//r } split "\n", $tc->stdout ],
+  [ '0,1,2,3', '4,5', '0,1,2,3,4,5' ], 'variances'
+);
 
-my @zrouty = pipe_into_cmd( 't/zrelation-yes', qw{./atonal-util zrelation} );
-is( $zrouty[0], 1, 'zrelation yes' );
+$tc->run( args => 'zrelation', stdin => "8-z15\n0,1,2,3,5,6,7,9\n" );
+is( $tc->stdout, "1\n", 'zrelation yes' );
 
-my @zroutn = pipe_into_cmd( 't/zrelation-no', qw{./atonal-util zrelation} );
-is( $zroutn[0], 0, 'zrelation no' );
+$tc->run( args => 'zrelation', stdin => "9-2\n0 1 2 3 4 5 6 8 9\n" );
+is( $tc->stdout, "0\n", 'zrelation no' );
 
-# Util.pm has a was-something-on-stderr test, so times two
-plan tests => 9 + @tests * 2;
+plan tests => 8 + @tests * 2;

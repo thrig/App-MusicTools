@@ -1,3 +1,4 @@
+ * 1.29 - canonical multicolumn read on stdin, Test::Cmd test rewrite, etc.
  * 1.28 - atonal-util notes2time --fraction=..., basic shows common
    names for certain pitch sets, fix a dep.
  * 1.27 - atonal-util adjacent_interval_content + --sd improvements.
