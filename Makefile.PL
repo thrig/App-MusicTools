@@ -1,6 +1,8 @@
 #!perl
 
-use 5.010000;
+# was at 5.010, but some Windows smoke box ignored the MIN_PERL_VERSION
+# and then failed all over the 5.14 features in a *.t file.
+use 5.014000;
 
 use strict;
 use warnings;
