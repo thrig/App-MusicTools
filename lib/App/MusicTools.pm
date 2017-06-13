@@ -4,7 +4,7 @@
 
 package App::MusicTools;
 use 5.014000;
-our $VERSION = '1.29';
+our $VERSION = '1.30';
 1;
 
 __END__

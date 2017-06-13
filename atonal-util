@@ -30,7 +30,6 @@ use Music::Tension::Cope ();
 #use Music::Tension::PlompLevelt ();
 use Parse::Range qw/parse_range/;
 use Scalar::Util qw/looks_like_number/;
-use Try::Tiny;
 
 my $PROG_NAME = basename($0);
 
@@ -378,55 +377,6 @@ sub beats2set {
   emit_pitch_set( \@set, lyflag => $lyify, rs => $Flag_Record_Sep );
 }
 
-# TODO but would also need means to encode all the different possible
-# rules that could be passed to this - probably easier to write a temp
-# script and just list the required data structures.
-#sub check_melody {
-#  my (@args) = @_;
-#  # copied from ly2pitch sub to obtain a list of pitch numbers
-#  GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
-#
-#  my $mode = 'absolute';
-#  GetOptionsFromArray( \@args, @Std_Opts, 'relative=s' => \my $relative, )
-#    or print_help();
-#
-#  $Lyu->ignore_register(0);
-#  $Lyu->keep_state(1);
-#  $Lyu->sticky_state(1);
-#  if ( defined $relative ) {
-#    if ( $relative =~ m/^\d+$/ ) {
-#      die "error: relative must be note name\n";
-#    }
-#    $Lyu->mode('relative');
-#    $Lyu->prev_note($relative);
-#  } else {
-#    $Lyu->mode('absolute');
-#  }
-#
-#  my @notes;
-#  if ( !@args or ( @args == 1 and $args[0] eq '-' ) ) {
-#    chomp( @args = readline *STDIN );
-#  }
-#
-#  # split input, as lilypond ' really do not suit the Unix shell, so
-#  # are best enclosed in "" blocks
-#  for my $arg (@args) {
-#    push @notes, split ' ', $arg;
-#  }
-#
-#  if ( !@notes ) {
-#    die "Usage: $0 check_melody [--relative=note] [-|notes...]\n";
-#  }
-#
-#  my @pitches = $Lyu->notes2pitches(@notes);
-#  my ($is_ok, $results) = $Atu->check_melody(TODO params, \@pitches);
-#  if (!$is_ok) {
-#    warn "fail\n";
-#    use Data::Dumper; warn Dumper $results;
-#    exit 1;
-#  }
-#}
-
 sub circular_permute {
   my (@args) = @_;
   GetOptionsFromArray( \@args, @Std_Opts ) or print_help();
@@ -494,25 +444,21 @@ sub combos {
     my $plus_delta  = 0;
     my $minus_delta = 0;
     my $errstr      = '';
-    try {
+    eval {
       $plus_pitch  = $scala->freq2pitch($plus);
       $minus_pitch = $scala->freq2pitch($minus);
       $plus_delta  = $p2f->($plus_pitch) - $plus;
       $minus_delta = $p2f->($minus_pitch) - $minus;
-    }
-    catch {
-      $errstr = "\t/!\\ pitch out of bounds";
     };
+    $errstr = "\t/!\\ pitch out of bounds" if $@;
 
     # best effort to get a note name, revert to pitch numbers if out of range
     if ( $Flag_Lyout and length $errstr == 0 ) {
-      try {
+      eval {
         $plus_pitch  = $Lyu->p2ly($plus_pitch);
         $minus_pitch = $Lyu->p2ly($minus_pitch);
-      }
-      catch {
-        $errstr = "\t/!\\ ly note out of bounds";
       };
+      $errstr = "\t/!\\ ly note out of bounds" if $@;
     }
 
     printf "%.2f+%.2f = %.2f\t(%s error %.2f)%s\n", $freqs[0], $freqs[$i],
@@ -1206,7 +1152,7 @@ sub recipe {
   my $wps = [@$ps];
 
   open my $fh, '<', $rfile or die "could not open '$rfile': $!\n";
-  try {
+  eval {
     while ( my $line = readline $fh ) {
       my ( $method, @margs ) = split ' ', $line;
       next if !$method or $method =~ m/^[\s#]/;
@@ -1214,10 +1160,8 @@ sub recipe {
       die "not a ", ref $Atu, " method" unless $Atu->can($method);
       $wps = $Atu->$method( @margs, $wps );
     }
-  }
-  catch {
-    die "recipe error at '$rfile' line $.: $_\n";
   };
+  die "recipe error at '$rfile' line $.: $@" if $@;
   emit_pitch_set( $wps, rs => $Flag_Record_Sep );
 }
 

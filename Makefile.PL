@@ -64,7 +64,6 @@ my %params = (
     'Scalar::Util'            => 0,
     'Text::Roman'             => 0,
     'Text::Wrap'              => 0,
-    'Try::Tiny'               => 0,
   },
 
   META_MERGE => {

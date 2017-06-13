@@ -17,7 +17,6 @@ use Getopt::Long qw/GetOptionsFromArray/;
 
 use Music::Canon        ();
 use Music::LilyPondUtil ();
-use Try::Tiny;
 
 my $PROG_NAME = basename($0);
 
@@ -56,9 +55,9 @@ my $mode = shift;
 emit_help() if !defined $mode or !exists $Modes{$mode};
 
 my $ret;
-try { $ret = $Modes{$mode}->(@ARGV) }
-catch {
-  warn "$PROG_NAME: $_";
+eval { $ret = $Modes{$mode}->(@ARGV) };
+if ($@) {
+  warn "$PROG_NAME: $@";
   $ret = 65;    # assume input data error
 };
 exit $ret;
