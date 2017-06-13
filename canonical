@@ -1,6 +1,6 @@
 #!perl
 
-# Compute canon voices via the Music::Canon module, though this script
+# Computes canon voices via the Music::Canon module, though this script
 # comes from the App::MusicTools distribution.
 #
 # Run perldoc(1) on this file for additional documentation.
@@ -263,10 +263,11 @@ Compute canon voices via the Music::Canon module. The modes are:
   exact - exact interval canon for given input notes
   modal - modal interval canon          "
 
-Raw pitch numbers or lilypond note names are accepted. Examples:
+Raw pitch numbers or lilypond note names (though only in the default
+"nederlands" language) are accepted. Examples:
 
   \$ $PROG_NAME --contrary --retrograde exact c cis d
-  \$ $PROG_NAME --transpose=12 exact c e g
+  \$ $PROG_NAME --transpose=12 exact c ees g
   \$ $PROG_NAME --raw --contrary exact 1 2 3
 
   \$ $PROG_NAME modal --input=lydian --output=locrian c e g
@@ -305,6 +306,9 @@ Exact interval mapping. Options include:
   --retrograde   Reverse the output voice.
   --transpose=N  Transpose output voice by semitones or to a lilypond note.
 
+Raw pitch numbers or lilypond note names (though only in the default
+"nederlands" language) are accepted.
+
 Run perldoc(1) on $PROG_NAME for additional documentation.
 
 EOH
@@ -342,6 +346,9 @@ General options include:
   --retrograde   Reverse the output voice.
   --transpose=N  Transpose output voice by semitones or to a lilypond note.
 
+Raw pitch numbers or lilypond note names (though only in the default
+"nederlands" language) are accepted.
+
 Run perldoc(1) on $PROG_NAME for additional documentation.
 
 EOH
@@ -378,10 +385,14 @@ canonical - compute canon voices via the Music::Canon module
 =head1 SYNOPSIS
 
   $ canonical --contrary --retrograde exact c cis d
-  $ canonical --transpose=12 exact c e g
+  $ canonical --transpose=12 exact c ees g
   $ canonical --raw --contrary exact 1 2 3
 
   $ canonical modal --input=lydian --output=locrian c e g
+
+Raw pitch numbers or lilypond note names (though only in the default
+"nederlands" language) are accepted. Consult the C<lilypond> "Notation
+Reference" section "Note names in other languages" for the syntax.
 
 =head1 DESCRIPTION
 
@@ -609,7 +620,7 @@ L<http://github.com/thrig/App-MusicTools>
 =head1 SEE ALSO
 
 L<http://www.lilypond.org/> and in particular the Learning and Notation
-manuals should be consulted to understand lilypond note syntax. Or, use
+manuals should be consulted to understand C<lilypond> note syntax. Or, use
 raw pitch numbers.
 
 L<http://en.wikipedia.org/wiki/Forte_number>
