@@ -695,8 +695,14 @@ sub freq2pitch {
     die "frequency '$freq' out of range" if $freq < 8 or $freq > 4200;
 
     my $p = $scala->freq2pitch($freq);
+
+    # how off is the frequency from the given scale and concertfreq?
+    my $pitch_freq = $scala->pitch2freq($p);
+    my $error = $freq - $pitch_freq;
+
     $p = $Lyu->p2ly($p) if $Flag_Lyout;
-    printf "%.2f\t%s\n", $freq, $p;
+
+    printf "%.2f\t%s\t%+.2f\n", $freq, $p, $error;
   }
 }
 
