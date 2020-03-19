@@ -1,3 +1,4 @@
+ * 1.31 - relicense under BSD. TODO
  * 1.30 - atonal-util freq2pitch shows delta from expected frequence of
           the resulting pitch. canonical adds 'map' flag.
  * 1.29 - canonical multicolumn read on stdin, Test::Cmd test rewrite, etc.
